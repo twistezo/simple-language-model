@@ -1,5 +1,5 @@
+// Generated with Bun
 {
-  // Generated with Bun
   "compilerOptions": {
     // Environment setup & latest features
     "lib": ["ESNext"],
