@@ -12,7 +12,8 @@ Always follow rules from /docs folder.
 - Import and export TypeScript types using `import type` and `export type`
 - Always add blank line before return statements
 - Use clear and descriptive names for variables and functions
-- Use
+- Prefer functions over classes
+- Do not use this keyword
 
 ## Programming principles
 
