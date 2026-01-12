@@ -1,39 +1,86 @@
-import { buildSamples } from './context'
-import { sampleNextTokenWithTemperature, SimpleLanguageModel } from './model'
-import { tokenize } from './tokenizer'
+import { applyMultiLayerAttentionWithResidualConnections } from './attention'
+import { DEFAULT_ATTENTION_LAYERS, DEFAULT_EMBEDDING_DIMENSION, DEFAULT_TOP_P } from './constants'
+import { buildTrainingSamples } from './context'
+import { EmbeddingLayer } from './embeddings'
+import { NgramLanguageModel, sampleNextToken } from './model'
+import { tokenizeText } from './tokenizer'
 import { Vocabulary } from './vocabulary'
 
-export interface LLM {
-  contextSize: number
-  model: SimpleLanguageModel
-  vocab: Vocabulary
+export type LanguageModel = {
+  attentionLayerCount: number
+  contextWindowSize: number
+  embeddingLayer: EmbeddingLayer
+  ngramModel: NgramLanguageModel
+  vocabulary: Vocabulary
 }
 
-export function generate(llm: LLM, prompt: string, length: number, temperature: number): string {
-  let context = tokenize(prompt, llm.vocab, false)
-  const output = [...prompt.split(/\s+/)]
+export const generateText = (
+  languageModel: LanguageModel,
+  promptText: string,
+  generationLength: number,
+  temperature: number,
+  nucleusProbabilityThreshold = DEFAULT_TOP_P,
+): string => {
+  let currentContext = tokenizeText(promptText, languageModel.vocabulary, false)
+  const outputWords = [...promptText.split(/\s+/)]
 
-  for (let i = 0; i < length; i++) {
-    const row = llm.model.getRow(context)
-    if (!row) break
+  for (let step = 0; step < generationLength; step++) {
+    const contextEmbeddings =
+      languageModel.embeddingLayer.getEmbeddingsForTokenSequence(currentContext)
 
-    const next = sampleNextTokenWithTemperature(row, temperature)
-    if (next === null) break
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _contextualEmbeddings = applyMultiLayerAttentionWithResidualConnections(
+      contextEmbeddings,
+      languageModel.attentionLayerCount,
+    )
 
-    const word = llm.vocab.decode(next)
-    output.push(word)
-    context = [...context.slice(1), next]
+    const nextTokenDistribution = languageModel.ngramModel.getNextTokenDistribution(currentContext)
+    if (!nextTokenDistribution) break
+
+    const nextToken = sampleNextToken(
+      nextTokenDistribution,
+      temperature,
+      nucleusProbabilityThreshold,
+    )
+    if (nextToken === null) break
+
+    const decodedWord = languageModel.vocabulary.decodeTokenToWord(nextToken)
+    outputWords.push(decodedWord)
+
+    currentContext = [...currentContext.slice(1), nextToken]
   }
 
-  return output.join(' ')
+  return outputWords.join(' ')
 }
 
-export function trainLLM(texts: string[], contextSize: number): LLM {
-  const vocab = new Vocabulary()
-  const samples = texts.flatMap(text => buildSamples(tokenize(text, vocab, true), contextSize))
+export const trainLanguageModel = (
+  trainingTexts: string[],
+  contextWindowSize: number,
+  embeddingDimension = DEFAULT_EMBEDDING_DIMENSION,
+  attentionLayerCount = DEFAULT_ATTENTION_LAYERS,
+): LanguageModel => {
+  const vocabulary = new Vocabulary()
 
-  const model = new SimpleLanguageModel()
-  model.train(samples)
+  const trainingSamples = trainingTexts.flatMap(text =>
+    buildTrainingSamples(tokenizeText(text, vocabulary, true), contextWindowSize),
+  )
 
-  return { contextSize, model, vocab }
+  const ngramModel = new NgramLanguageModel()
+  ngramModel.trainOnSamples(trainingSamples)
+
+  const embeddingLayer = new EmbeddingLayer(embeddingDimension)
+  for (const sample of trainingSamples) {
+    for (const tokenIdentifier of sample.contextTokens) {
+      embeddingLayer.initializeTokenEmbedding(tokenIdentifier)
+    }
+    embeddingLayer.initializeTokenEmbedding(sample.nextToken)
+  }
+
+  return {
+    attentionLayerCount,
+    contextWindowSize,
+    embeddingLayer,
+    ngramModel,
+    vocabulary,
+  }
 }

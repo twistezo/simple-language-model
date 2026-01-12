@@ -1,25 +1,27 @@
-export type Token = number
+export type TokenIdentifier = number
 
 export class Vocabulary {
-  private idToWord = new Map<Token, string>()
-  private wordToId = new Map<string, Token>()
+  private tokenIdentifierToWord = new Map<TokenIdentifier, string>()
+  private wordToTokenIdentifier = new Map<string, TokenIdentifier>()
 
-  add(word: string): Token {
-    if (!this.wordToId.has(word)) {
-      const id = this.wordToId.size
-      this.wordToId.set(word, id)
-      this.idToWord.set(id, word)
+  addWord(word: string): TokenIdentifier {
+    if (!this.wordToTokenIdentifier.has(word)) {
+      const tokenIdentifier = this.wordToTokenIdentifier.size
+      this.wordToTokenIdentifier.set(word, tokenIdentifier)
+      this.tokenIdentifierToWord.set(tokenIdentifier, word)
     }
-    return this.wordToId.get(word)!
+
+    return this.wordToTokenIdentifier.get(word)!
   }
 
-  decode(token: Token): string {
-    const word = this.idToWord.get(token)
-    if (!word) throw new Error('Unknown token')
+  decodeTokenToWord(tokenIdentifier: TokenIdentifier): string {
+    const word = this.tokenIdentifierToWord.get(tokenIdentifier)
+    if (word === undefined) throw new Error('Unknown token')
+
     return word
   }
 
-  encode(word: string): Token | undefined {
-    return this.wordToId.get(word)
+  encodeWordToToken(word: string): TokenIdentifier | undefined {
+    return this.wordToTokenIdentifier.get(word)
   }
 }

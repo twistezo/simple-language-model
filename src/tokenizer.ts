@@ -1,16 +1,24 @@
-import { Token, Vocabulary } from './vocabulary'
+import type { TokenIdentifier } from './vocabulary'
 
-export function tokenize(text: string, vocab: Vocabulary, training: boolean): Token[] {
-  return text
-    .toLowerCase()
-    .split(/\s+/)
-    .map(word => {
-      const token = training ? vocab.add(word) : vocab.encode(word)
+import { Vocabulary } from './vocabulary'
 
-      if (token === undefined) {
-        throw new Error(`Unknown word: ${word}`)
-      }
+export const tokenizeText = (
+  inputText: string,
+  vocabulary: Vocabulary,
+  isTrainingMode: boolean,
+): TokenIdentifier[] => {
+  const lowercaseText = inputText.toLowerCase()
+  const words = lowercaseText.split(/\s+/)
 
-      return token
-    })
+  return words.map(word => {
+    const tokenIdentifier = isTrainingMode
+      ? vocabulary.addWord(word)
+      : vocabulary.encodeWordToToken(word)
+
+    if (tokenIdentifier === undefined) {
+      throw new Error(`Unknown word: ${word}`)
+    }
+
+    return tokenIdentifier
+  })
 }

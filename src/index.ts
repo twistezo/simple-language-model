@@ -1,73 +1,62 @@
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
-import readline from 'readline'
 
 import { DEFAULT_CONTEXT_SIZE, DEFAULT_GENERATION_LENGTH, DEFAULT_TEMPERATURE } from './constants'
-import { generate, trainLLM } from './llm'
-
-function getCliArg(name: string): string | undefined {
-  const index = process.argv.indexOf(`--${name}`)
-  if (index === -1) return undefined
-  return process.argv[index + 1]
-}
-
-const CONTEXT_SIZE = Number(getCliArg('context-size')) || DEFAULT_CONTEXT_SIZE
-
-const TEMPERATURE = Number(getCliArg('temperature')) || DEFAULT_TEMPERATURE
+import { generateText, trainLanguageModel } from './llm'
 
 async function main() {
   console.log('Starting LLM demo...')
   console.log('Dataset: dataset/simple-wikipedia.parquet')
-  console.log(`Context size: ${CONTEXT_SIZE}, Temperature: ${TEMPERATURE}`)
+  console.log(`Context size: ${DEFAULT_CONTEXT_SIZE}, Temperature: ${DEFAULT_TEMPERATURE}`)
 
-  const t0 = Date.now()
+  const startTime = Date.now()
 
-  const file = await asyncBufferFromFile('dataset/simple-wikipedia.parquet')
+  const parquetFile = await asyncBufferFromFile('dataset/simple-wikipedia.parquet')
   console.log('File loaded into memory.')
 
   console.log('Parsing Parquet records...')
-  const records = await parquetReadObjects({ file })
-  console.log(`Loaded ${records.length} records.`)
+  const parquetRecords = await parquetReadObjects({ file: parquetFile })
+  console.log(`Loaded ${parquetRecords.length} records.`)
 
   console.log('Preparing training texts...')
-  const texts: string[] = []
-  for (const r of records) {
-    if (typeof r.text === 'string') {
-      texts.push(r.text)
+  const trainingTexts: string[] = []
+  for (const record of parquetRecords) {
+    if (typeof record.text === 'string') {
+      trainingTexts.push(record.text)
     }
   }
-  console.log(`Collected ${texts.length} text entries.`)
+  console.log(`Collected ${trainingTexts.length} text entries.`)
 
-  console.log(`Training ${CONTEXT_SIZE}-gram language model (this may take a while)...`)
-  const llm = trainLLM(texts, CONTEXT_SIZE)
+  console.log(`Training ${DEFAULT_CONTEXT_SIZE}-gram language model (this may take a while)...`)
+  const languageModel = trainLanguageModel(trainingTexts, DEFAULT_CONTEXT_SIZE)
 
-  const seconds = ((Date.now() - t0) / 1000).toFixed(1)
-  console.log(`Model trained in ${seconds}s.\n`)
+  const trainingDurationSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
+  console.log(`Model trained in ${trainingDurationSeconds}s.\n`)
 
   console.log('How to use:')
-  console.log(`- This is a ${CONTEXT_SIZE}-gram model, so enter at least ${CONTEXT_SIZE} words`)
+  console.log(
+    `- This is a ${DEFAULT_CONTEXT_SIZE}-gram model, so enter at least ${DEFAULT_CONTEXT_SIZE} words`,
+  )
   console.log(`- Example: "a cat" works, "cat" does not`)
   console.log('')
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
+  while (true) {
+    const userInput = prompt('Prompt>')
+    if (userInput === null) break
 
-  function ask() {
-    rl.question('Prompt> ', input => {
-      const words = input.trim().split(/\s+/)
-      if (words.length < CONTEXT_SIZE) {
-        console.log(`Please enter at least ${CONTEXT_SIZE} words.`)
-        return ask()
-      }
+    const inputWords = userInput.trim().split(/\s+/)
+    if (inputWords.length < DEFAULT_CONTEXT_SIZE) {
+      console.log(`Please enter at least ${DEFAULT_CONTEXT_SIZE} words.`)
+      continue
+    }
 
-      const out = generate(llm, input, DEFAULT_GENERATION_LENGTH, TEMPERATURE)
-      console.log(out)
-      ask()
-    })
+    const generatedOutput = generateText(
+      languageModel,
+      userInput,
+      DEFAULT_GENERATION_LENGTH,
+      DEFAULT_TEMPERATURE,
+    )
+    console.log(generatedOutput)
   }
-
-  ask()
 }
 
 main().catch(console.error)

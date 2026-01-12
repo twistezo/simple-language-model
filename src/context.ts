@@ -1,17 +1,25 @@
-import { Token } from './vocabulary'
+import type { TokenIdentifier } from './vocabulary'
 
-export type Sample = {
-  context: Token[]
-  next: Token
+export type TrainingSample = {
+  contextTokens: TokenIdentifier[]
+  nextToken: TokenIdentifier
 }
 
-export function buildSamples(tokens: Token[], contextSize: number): Sample[] {
-  const samples: Sample[] = []
-  for (let i = 0; i + contextSize < tokens.length; i++) {
-    samples.push({
-      context: tokens.slice(i, i + contextSize),
-      next: tokens[i + contextSize],
-    })
+export const buildTrainingSamples = (
+  tokenSequence: TokenIdentifier[],
+  contextWindowSize: number,
+): TrainingSample[] => {
+  const trainingSamples: TrainingSample[] = []
+
+  for (let position = 0; position + contextWindowSize < tokenSequence.length; position++) {
+    const nextToken = tokenSequence[position + contextWindowSize]
+    if (nextToken !== undefined) {
+      trainingSamples.push({
+        contextTokens: tokenSequence.slice(position, position + contextWindowSize),
+        nextToken,
+      })
+    }
   }
-  return samples
+
+  return trainingSamples
 }

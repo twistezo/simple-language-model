@@ -1,45 +1,116 @@
-import { Sample } from './context'
-import { Token } from './vocabulary'
+import type { TrainingSample } from './context'
+import type { TokenIdentifier } from './vocabulary'
 
-export class SimpleLanguageModel {
-  private table = new Map<string, Map<Token, number>>()
+export type TokenFrequencyDistribution = Map<TokenIdentifier, number>
 
-  getRow(context: Token[]): Map<Token, number> | undefined {
-    return this.table.get(context.join(','))
+export class NgramLanguageModel {
+  private contextToNextTokenFrequencies = new Map<string, TokenFrequencyDistribution>()
+
+  getNextTokenDistribution(
+    contextTokens: TokenIdentifier[],
+  ): TokenFrequencyDistribution | undefined {
+    const contextKey = contextTokens.join(',')
+
+    return this.contextToNextTokenFrequencies.get(contextKey)
   }
 
-  train(samples: Sample[]): void {
-    for (const { context, next } of samples) {
-      const key = context.join(',')
-      if (!this.table.has(key)) {
-        this.table.set(key, new Map())
+  trainOnSamples(trainingSamples: TrainingSample[]): void {
+    for (const { contextTokens, nextToken } of trainingSamples) {
+      const contextKey = contextTokens.join(',')
+
+      if (!this.contextToNextTokenFrequencies.has(contextKey)) {
+        this.contextToNextTokenFrequencies.set(contextKey, new Map())
       }
-      const row = this.table.get(key)!
-      row.set(next, (row.get(next) ?? 0) + 1)
+
+      const frequencyDistribution = this.contextToNextTokenFrequencies.get(contextKey)!
+      const currentCount = frequencyDistribution.get(nextToken) ?? 0
+      frequencyDistribution.set(nextToken, currentCount + 1)
     }
   }
 }
 
-// Probabilistic sampling with temperature
-export function sampleNextTokenWithTemperature(
-  distribution: Map<Token, number>,
+export const sampleNextTokenWithTemperature = (
+  tokenDistribution: TokenFrequencyDistribution,
   temperature = 1,
-): null | Token {
-  const entries = [...distribution.entries()]
-  if (entries.length === 0) return null
+): TokenIdentifier | null => {
+  const distributionEntries = [...tokenDistribution.entries()]
+  if (distributionEntries.length === 0) return null
 
-  const adjusted = entries.map(([token, count]) => ({
-    token,
-    weight: Math.pow(count, 1 / temperature),
+  const temperatureAdjustedWeights = distributionEntries.map(([tokenIdentifier, frequency]) => ({
+    tokenIdentifier,
+    adjustedWeight: Math.pow(frequency, 1 / temperature),
   }))
 
-  const total = adjusted.reduce((sum, e) => sum + e.weight, 0)
-  let r = Math.random() * total
+  const totalWeight = temperatureAdjustedWeights.reduce(
+    (sum, entry) => sum + entry.adjustedWeight,
+    0,
+  )
+  let randomThreshold = Math.random() * totalWeight
 
-  for (const e of adjusted) {
-    r -= e.weight
-    if (r <= 0) return e.token
+  for (const entry of temperatureAdjustedWeights) {
+    randomThreshold -= entry.adjustedWeight
+    if (randomThreshold <= 0) return entry.tokenIdentifier
   }
 
-  return adjusted[0].token // fallback
+  return temperatureAdjustedWeights[0]?.tokenIdentifier ?? null
+}
+
+export const sampleNextTokenWithNucleusSampling = (
+  tokenDistribution: TokenFrequencyDistribution,
+  nucleusProbabilityThreshold: number,
+  temperature = 1,
+): TokenIdentifier | null => {
+  const distributionEntries = [...tokenDistribution.entries()]
+  if (distributionEntries.length === 0) return null
+
+  const temperatureAdjustedWeights = distributionEntries
+    .map(([tokenIdentifier, frequency]) => ({
+      tokenIdentifier,
+      adjustedWeight: Math.pow(frequency, 1 / temperature),
+    }))
+    .sort((entryA, entryB) => entryB.adjustedWeight - entryA.adjustedWeight)
+
+  const totalWeight = temperatureAdjustedWeights.reduce(
+    (sum, entry) => sum + entry.adjustedWeight,
+    0,
+  )
+
+  let cumulativeProbability = 0
+  const nucleusTokens: typeof temperatureAdjustedWeights = []
+
+  for (const entry of temperatureAdjustedWeights) {
+    cumulativeProbability += entry.adjustedWeight / totalWeight
+    nucleusTokens.push(entry)
+    if (cumulativeProbability >= nucleusProbabilityThreshold) break
+  }
+
+  const nucleusTotalWeight = nucleusTokens.reduce((sum, entry) => sum + entry.adjustedWeight, 0)
+  let randomThreshold = Math.random() * nucleusTotalWeight
+
+  for (const entry of nucleusTokens) {
+    randomThreshold -= entry.adjustedWeight
+    if (randomThreshold <= 0) return entry.tokenIdentifier
+  }
+
+  return nucleusTokens[0]?.tokenIdentifier ?? null
+}
+
+export const sampleNextToken = (
+  tokenDistribution: TokenFrequencyDistribution,
+  temperature = 1,
+  nucleusProbabilityThreshold?: number,
+): TokenIdentifier | null => {
+  if (
+    nucleusProbabilityThreshold !== undefined &&
+    nucleusProbabilityThreshold > 0 &&
+    nucleusProbabilityThreshold < 1
+  ) {
+    return sampleNextTokenWithNucleusSampling(
+      tokenDistribution,
+      nucleusProbabilityThreshold,
+      temperature,
+    )
+  }
+
+  return sampleNextTokenWithTemperature(tokenDistribution, temperature)
 }
