@@ -1,0 +1,3 @@
+export const DEFAULT_CONTEXT_SIZE = 2
+export const DEFAULT_TEMPERATURE = 0.7
+export const DEFAULT_GENERATION_LENGTH = 5
