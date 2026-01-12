@@ -4,25 +4,87 @@ import { Vocabulary } from '../src/vocabulary'
 
 describe('Vocabulary', () => {
   it('should add and encode words correctly', () => {
-    const vocab = new Vocabulary()
-    const token1 = vocab.add('cat')
-    const token2 = vocab.add('dog')
+    const vocabulary = new Vocabulary()
+    const token1 = vocabulary.addWord('cat')
+    const token2 = vocabulary.addWord('dog')
 
     expect(token1).toBe(0)
     expect(token2).toBe(1)
 
-    expect(vocab.encode('cat')).toBe(0)
-    expect(vocab.encode('dog')).toBe(1)
+    expect(vocabulary.encodeWordToToken('cat')).toBe(0)
+    expect(vocabulary.encodeWordToToken('dog')).toBe(1)
   })
 
   it('should decode tokens correctly', () => {
-    const vocab = new Vocabulary()
-    const t = vocab.add('bird')
-    expect(vocab.decode(t)).toBe('bird')
+    const vocabulary = new Vocabulary()
+    const tokenIdentifier = vocabulary.addWord('bird')
+    expect(vocabulary.decodeTokenToWord(tokenIdentifier)).toBe('bird')
   })
 
   it('should throw on decoding unknown token', () => {
-    const vocab = new Vocabulary()
-    expect(() => vocab.decode(999)).toThrow()
+    const vocabulary = new Vocabulary()
+    expect(() => vocabulary.decodeTokenToWord(999)).toThrow('Unknown token')
+  })
+
+  it('should return same token for duplicate word additions', () => {
+    const vocabulary = new Vocabulary()
+    const first = vocabulary.addWord('hello')
+    const second = vocabulary.addWord('hello')
+    const third = vocabulary.addWord('hello')
+
+    expect(first).toBe(second)
+    expect(second).toBe(third)
+    expect(first).toBe(0)
+  })
+
+  it('should return undefined for encoding unknown word', () => {
+    const vocabulary = new Vocabulary()
+    vocabulary.addWord('known')
+
+    expect(vocabulary.encodeWordToToken('unknown')).toBeUndefined()
+  })
+
+  it('should handle empty string as valid word', () => {
+    const vocabulary = new Vocabulary()
+    const tokenIdentifier = vocabulary.addWord('')
+
+    expect(tokenIdentifier).toBe(0)
+    expect(vocabulary.encodeWordToToken('')).toBe(0)
+    expect(vocabulary.decodeTokenToWord(tokenIdentifier)).toBe('')
+  })
+
+  it('should handle special characters', () => {
+    const vocabulary = new Vocabulary()
+    const t1 = vocabulary.addWord('hello!')
+    const t2 = vocabulary.addWord('@#$%')
+    const t3 = vocabulary.addWord('über')
+
+    expect(vocabulary.decodeTokenToWord(t1)).toBe('hello!')
+    expect(vocabulary.decodeTokenToWord(t2)).toBe('@#$%')
+    expect(vocabulary.decodeTokenToWord(t3)).toBe('über')
+  })
+
+  it('should handle large vocabulary', () => {
+    const vocabulary = new Vocabulary()
+
+    for (let i = 0; i < 10000; i++) {
+      vocabulary.addWord(`word${i}`)
+    }
+
+    expect(vocabulary.encodeWordToToken('word0')).toBe(0)
+    expect(vocabulary.encodeWordToToken('word9999')).toBe(9999)
+    expect(vocabulary.decodeTokenToWord(5000)).toBe('word5000')
+  })
+
+  it('should maintain consistency between add, encode, and decode', () => {
+    const vocabulary = new Vocabulary()
+    const words = ['apple', 'banana', 'cherry', 'date', 'elderberry']
+
+    const tokens = words.map(word => vocabulary.addWord(word))
+
+    for (let i = 0; i < words.length; i++) {
+      expect(vocabulary.encodeWordToToken(words[i]!)).toBe(tokens[i])
+      expect(vocabulary.decodeTokenToWord(tokens[i]!)).toBe(words[i]!)
+    }
   })
 })
