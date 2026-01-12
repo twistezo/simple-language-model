@@ -1,76 +1,66 @@
+import { Matrix } from 'ml-matrix'
+
 import type { EmbeddingVector } from './embeddings'
 
 export type AttentionWeightMatrix = number[][]
 
+/**
+ * Softmax: converts raw scores to probabilities (sum = 1)
+ * Uses numerical stability trick: subtract max before exp
+ */
 export const convertScoresToProbabilities = (scores: number[]): number[] => {
-  const maximumScore = Math.max(...scores)
-  const exponentiatedScores = scores.map(score => Math.exp(score - maximumScore))
-  const totalSum = exponentiatedScores.reduce((accumulator, value) => accumulator + value, 0)
+  const max = Math.max(...scores)
+  const exp = scores.map(s => Math.exp(s - max))
+  const sum = exp.reduce((a, b) => a + b, 0)
 
-  return exponentiatedScores.map(exponentiatedScore => exponentiatedScore / totalSum)
+  return exp.map(e => e / sum)
 }
 
-const calculateDotProduct = (vectorA: number[], vectorB: number[]): number =>
-  vectorA.reduce((sum, value, index) => sum + value * (vectorB[index] ?? 0), 0)
-
+/**
+ * Scaled dot-product attention: scores = (Q @ K^T) / sqrt(d)
+ * Then softmax per row to get attention weights
+ */
 export const calculateScaledAttentionScores = (
-  embeddingSequence: EmbeddingVector[],
+  embeddings: EmbeddingVector[],
 ): AttentionWeightMatrix => {
-  if (embeddingSequence.length === 0) return []
+  if (embeddings.length === 0) return []
 
-  const embeddingDimension = embeddingSequence[0]?.length ?? 0
-  const scalingFactor = Math.sqrt(embeddingDimension)
+  const E = new Matrix(embeddings)
+  const scores = E.mmul(E.transpose()).div(Math.sqrt(E.columns))
 
-  return embeddingSequence.map(queryVector =>
-    convertScoresToProbabilities(
-      embeddingSequence.map(
-        keyVector => calculateDotProduct(queryVector, keyVector) / scalingFactor,
-      ),
-    ),
-  )
+  return scores.to2DArray().map(convertScoresToProbabilities)
 }
 
+/**
+ * Apply attention: output = weights @ values
+ */
 export const applyAttentionWeightsToEmbeddings = (
-  embeddingSequence: EmbeddingVector[],
-  attentionWeights: AttentionWeightMatrix,
+  embeddings: EmbeddingVector[],
+  weights: AttentionWeightMatrix,
 ): EmbeddingVector[] => {
-  if (embeddingSequence.length === 0) return []
+  if (embeddings.length === 0) return []
 
-  const embeddingDimension = embeddingSequence[0]?.length ?? 0
-
-  return attentionWeights.map(weightRow =>
-    Array.from({ length: embeddingDimension }, (_, dimensionIndex) =>
-      weightRow.reduce(
-        (sum, weight, positionIndex) =>
-          sum + weight * (embeddingSequence[positionIndex]?.[dimensionIndex] ?? 0),
-        0,
-      ),
-    ),
-  )
+  return new Matrix(weights).mmul(new Matrix(embeddings)).to2DArray()
 }
 
-export const applySelfAttention = (embeddingSequence: EmbeddingVector[]): EmbeddingVector[] => {
-  const attentionWeights = calculateScaledAttentionScores(embeddingSequence)
+export const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] =>
+  applyAttentionWeightsToEmbeddings(embeddings, calculateScaledAttentionScores(embeddings))
 
-  return applyAttentionWeightsToEmbeddings(embeddingSequence, attentionWeights)
-}
-
+/**
+ * Multi-layer attention with residual connections: output = input + attention(input)
+ */
 export const applyMultiLayerAttentionWithResidualConnections = (
-  embeddingSequence: EmbeddingVector[],
-  numberOfLayers: number,
+  embeddings: EmbeddingVector[],
+  layers: number,
 ): EmbeddingVector[] => {
-  let currentEmbeddings = embeddingSequence
+  if (embeddings.length === 0) return []
 
-  for (let layerIndex = 0; layerIndex < numberOfLayers; layerIndex++) {
-    const attendedEmbeddings = applySelfAttention(currentEmbeddings)
+  let current = new Matrix(embeddings)
 
-    currentEmbeddings = currentEmbeddings.map((embedding, embeddingIndex) =>
-      embedding.map(
-        (value, dimensionIndex) =>
-          value + (attendedEmbeddings[embeddingIndex]?.[dimensionIndex] ?? 0),
-      ),
-    )
+  for (let i = 0; i < layers; i++) {
+    const attended = new Matrix(applySelfAttention(current.to2DArray()))
+    current = current.add(attended)
   }
 
-  return currentEmbeddings
+  return current.to2DArray()
 }

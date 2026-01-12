@@ -1,48 +1,46 @@
+import { Matrix } from 'ml-matrix'
+
 import type { TokenIdentifier } from './vocabulary'
 
 export type EmbeddingLayer = {
   getEmbeddingDimension: () => number
-  getEmbeddingForToken: (tokenIdentifier: TokenIdentifier) => EmbeddingVector
-  getEmbeddingsForTokenSequence: (tokenSequence: TokenIdentifier[]) => EmbeddingVector[]
-  initializeTokenEmbedding: (tokenIdentifier: TokenIdentifier) => void
+  getEmbeddingForToken: (token: TokenIdentifier) => EmbeddingVector
+  getEmbeddingsForTokenSequence: (tokens: TokenIdentifier[]) => EmbeddingVector[]
+  initializeTokenEmbedding: (token: TokenIdentifier) => void
 }
 
 export type EmbeddingVector = number[]
 
+/**
+ * Normalize vector to unit length (L2 normalization)
+ */
 const normalizeToUnitLength = (vector: EmbeddingVector): EmbeddingVector => {
-  const magnitude = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0))
-  if (magnitude === 0) return vector
+  const v = Matrix.rowVector(vector)
+  const magnitude = v.norm()
 
-  return vector.map(value => value / magnitude)
+  return magnitude === 0 ? vector : v.div(magnitude).to1DArray()
 }
 
-export const createEmbeddingLayer = (embeddingDimension: number): EmbeddingLayer => {
-  const tokenEmbeddings = new Map<TokenIdentifier, EmbeddingVector>()
+export const createEmbeddingLayer = (dimension: number): EmbeddingLayer => {
+  const embeddings = new Map<TokenIdentifier, EmbeddingVector>()
 
-  const initializeTokenEmbedding = (tokenIdentifier: TokenIdentifier): void => {
-    if (!tokenEmbeddings.has(tokenIdentifier)) {
-      const randomVector = Array.from({ length: embeddingDimension }, () => Math.random() * 2 - 1)
-      tokenEmbeddings.set(tokenIdentifier, normalizeToUnitLength(randomVector))
+  const initializeTokenEmbedding = (token: TokenIdentifier): void => {
+    if (!embeddings.has(token)) {
+      const random = Array.from({ length: dimension }, () => Math.random() * 2 - 1)
+      embeddings.set(token, normalizeToUnitLength(random))
     }
   }
 
-  const getEmbeddingForToken = (tokenIdentifier: TokenIdentifier): EmbeddingVector => {
-    if (!tokenEmbeddings.has(tokenIdentifier)) {
-      initializeTokenEmbedding(tokenIdentifier)
-    }
+  const getEmbeddingForToken = (token: TokenIdentifier): EmbeddingVector => {
+    if (!embeddings.has(token)) initializeTokenEmbedding(token)
 
-    return tokenEmbeddings.get(tokenIdentifier)!
+    return embeddings.get(token)!
   }
-
-  const getEmbeddingsForTokenSequence = (tokenSequence: TokenIdentifier[]): EmbeddingVector[] =>
-    tokenSequence.map(getEmbeddingForToken)
-
-  const getEmbeddingDimension = (): number => embeddingDimension
 
   return {
-    getEmbeddingDimension,
+    getEmbeddingDimension: () => dimension,
     getEmbeddingForToken,
-    getEmbeddingsForTokenSequence,
+    getEmbeddingsForTokenSequence: tokens => tokens.map(getEmbeddingForToken),
     initializeTokenEmbedding,
   }
 }
