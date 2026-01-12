@@ -1,6 +1,4 @@
-import type { TokenIdentifier } from './vocabulary'
-
-import { Vocabulary } from './vocabulary'
+import type { TokenIdentifier, Vocabulary } from './vocabulary'
 
 export const tokenizeText = (
   inputText: string,

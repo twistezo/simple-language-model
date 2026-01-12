@@ -1,27 +1,34 @@
 export type TokenIdentifier = number
 
-export class Vocabulary {
-  private tokenIdentifierToWord = new Map<TokenIdentifier, string>()
-  private wordToTokenIdentifier = new Map<string, TokenIdentifier>()
+export type Vocabulary = {
+  addWord: (word: string) => TokenIdentifier
+  decodeTokenToWord: (tokenIdentifier: TokenIdentifier) => string
+  encodeWordToToken: (word: string) => TokenIdentifier | undefined
+}
 
-  addWord(word: string): TokenIdentifier {
-    if (!this.wordToTokenIdentifier.has(word)) {
-      const tokenIdentifier = this.wordToTokenIdentifier.size
-      this.wordToTokenIdentifier.set(word, tokenIdentifier)
-      this.tokenIdentifierToWord.set(tokenIdentifier, word)
+export const createVocabulary = (): Vocabulary => {
+  const tokenIdentifierToWord = new Map<TokenIdentifier, string>()
+  const wordToTokenIdentifier = new Map<string, TokenIdentifier>()
+
+  const addWord = (word: string): TokenIdentifier => {
+    if (!wordToTokenIdentifier.has(word)) {
+      const tokenIdentifier = wordToTokenIdentifier.size
+      wordToTokenIdentifier.set(word, tokenIdentifier)
+      tokenIdentifierToWord.set(tokenIdentifier, word)
     }
 
-    return this.wordToTokenIdentifier.get(word)!
+    return wordToTokenIdentifier.get(word)!
   }
 
-  decodeTokenToWord(tokenIdentifier: TokenIdentifier): string {
-    const word = this.tokenIdentifierToWord.get(tokenIdentifier)
+  const decodeTokenToWord = (tokenIdentifier: TokenIdentifier): string => {
+    const word = tokenIdentifierToWord.get(tokenIdentifier)
     if (word === undefined) throw new Error('Unknown token')
 
     return word
   }
 
-  encodeWordToToken(word: string): TokenIdentifier | undefined {
-    return this.wordToTokenIdentifier.get(word)
-  }
+  const encodeWordToToken = (word: string): TokenIdentifier | undefined =>
+    wordToTokenIdentifier.get(word)
+
+  return { addWord, decodeTokenToWord, encodeWordToToken }
 }

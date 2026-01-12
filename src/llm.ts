@@ -1,10 +1,10 @@
 import { applyMultiLayerAttentionWithResidualConnections } from './attention'
 import { DEFAULT_ATTENTION_LAYERS, DEFAULT_EMBEDDING_DIMENSION, DEFAULT_TOP_P } from './constants'
 import { buildTrainingSamples } from './context'
-import { EmbeddingLayer } from './embeddings'
-import { NgramLanguageModel, sampleNextToken } from './model'
+import { createEmbeddingLayer, type EmbeddingLayer } from './embeddings'
+import { createNgramLanguageModel, type NgramLanguageModel, sampleNextToken } from './model'
 import { tokenizeText } from './tokenizer'
-import { Vocabulary } from './vocabulary'
+import { createVocabulary, type Vocabulary } from './vocabulary'
 
 export type LanguageModel = {
   attentionLayerCount: number
@@ -59,16 +59,16 @@ export const trainLanguageModel = (
   embeddingDimension = DEFAULT_EMBEDDING_DIMENSION,
   attentionLayerCount = DEFAULT_ATTENTION_LAYERS,
 ): LanguageModel => {
-  const vocabulary = new Vocabulary()
+  const vocabulary = createVocabulary()
 
   const trainingSamples = trainingTexts.flatMap(text =>
     buildTrainingSamples(tokenizeText(text, vocabulary, true), contextWindowSize),
   )
 
-  const ngramModel = new NgramLanguageModel()
+  const ngramModel = createNgramLanguageModel()
   ngramModel.trainOnSamples(trainingSamples)
 
-  const embeddingLayer = new EmbeddingLayer(embeddingDimension)
+  const embeddingLayer = createEmbeddingLayer(embeddingDimension)
   for (const sample of trainingSamples) {
     for (const tokenIdentifier of sample.contextTokens) {
       embeddingLayer.initializeTokenEmbedding(tokenIdentifier)
