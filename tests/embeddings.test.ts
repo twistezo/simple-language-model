@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'bun:test'
 
-import { EmbeddingLayer } from '../src/embeddings'
+import { createEmbeddingLayer } from '../src/embeddings'
 
 describe('EmbeddingLayer', () => {
   it('should create embeddings with correct dimension', () => {
-    const layer = new EmbeddingLayer(64)
+    const layer = createEmbeddingLayer(64)
     const embedding = layer.getEmbeddingForToken(0)
 
     expect(embedding.length).toBe(64)
   })
 
   it('should return same embedding for same token', () => {
-    const layer = new EmbeddingLayer(32)
+    const layer = createEmbeddingLayer(32)
     const first = layer.getEmbeddingForToken(42)
     const second = layer.getEmbeddingForToken(42)
 
@@ -19,7 +19,7 @@ describe('EmbeddingLayer', () => {
   })
 
   it('should return different embeddings for different tokens', () => {
-    const layer = new EmbeddingLayer(32)
+    const layer = createEmbeddingLayer(32)
     const emb1 = layer.getEmbeddingForToken(0)
     const emb2 = layer.getEmbeddingForToken(1)
 
@@ -27,26 +27,26 @@ describe('EmbeddingLayer', () => {
   })
 
   it('should return correct dimension from getEmbeddingDimension', () => {
-    const layer = new EmbeddingLayer(128)
+    const layer = createEmbeddingLayer(128)
     expect(layer.getEmbeddingDimension()).toBe(128)
   })
 
   it('should handle dimension of 1', () => {
-    const layer = new EmbeddingLayer(1)
+    const layer = createEmbeddingLayer(1)
     const embedding = layer.getEmbeddingForToken(0)
 
     expect(embedding.length).toBe(1)
   })
 
   it('should handle large dimensions', () => {
-    const layer = new EmbeddingLayer(1024)
+    const layer = createEmbeddingLayer(1024)
     const embedding = layer.getEmbeddingForToken(0)
 
     expect(embedding.length).toBe(1024)
   })
 
   it('should handle large token IDs', () => {
-    const layer = new EmbeddingLayer(16)
+    const layer = createEmbeddingLayer(16)
     const embedding = layer.getEmbeddingForToken(999999)
 
     expect(embedding.length).toBe(16)
@@ -55,7 +55,7 @@ describe('EmbeddingLayer', () => {
 
 describe('EmbeddingLayer.getEmbeddingsForTokenSequence', () => {
   it('should embed multiple tokens', () => {
-    const layer = new EmbeddingLayer(16)
+    const layer = createEmbeddingLayer(16)
     const tokens = [0, 1, 2]
     const embeddings = layer.getEmbeddingsForTokenSequence(tokens)
 
@@ -66,14 +66,14 @@ describe('EmbeddingLayer.getEmbeddingsForTokenSequence', () => {
   })
 
   it('should return empty array for empty input', () => {
-    const layer = new EmbeddingLayer(16)
+    const layer = createEmbeddingLayer(16)
     const embeddings = layer.getEmbeddingsForTokenSequence([])
 
     expect(embeddings).toEqual([])
   })
 
   it('should return consistent embeddings for repeated tokens', () => {
-    const layer = new EmbeddingLayer(16)
+    const layer = createEmbeddingLayer(16)
     const embeddings = layer.getEmbeddingsForTokenSequence([5, 5, 5])
 
     expect(embeddings[0]).toEqual(embeddings[1])
@@ -81,7 +81,7 @@ describe('EmbeddingLayer.getEmbeddingsForTokenSequence', () => {
   })
 
   it('should handle large sequence', () => {
-    const layer = new EmbeddingLayer(8)
+    const layer = createEmbeddingLayer(8)
     const tokens = Array.from({ length: 100 }, (_, i) => i)
     const embeddings = layer.getEmbeddingsForTokenSequence(tokens)
 
@@ -89,7 +89,7 @@ describe('EmbeddingLayer.getEmbeddingsForTokenSequence', () => {
   })
 
   it('should preserve token order', () => {
-    const layer = new EmbeddingLayer(8)
+    const layer = createEmbeddingLayer(8)
     const embeddings = layer.getEmbeddingsForTokenSequence([0, 1, 2])
 
     const emb0 = layer.getEmbeddingForToken(0)
@@ -104,7 +104,7 @@ describe('EmbeddingLayer.getEmbeddingsForTokenSequence', () => {
 
 describe('EmbeddingLayer.initializeTokenEmbedding', () => {
   it('should initialize token embedding', () => {
-    const layer = new EmbeddingLayer(32)
+    const layer = createEmbeddingLayer(32)
     layer.initializeTokenEmbedding(99)
 
     const embedding = layer.getEmbeddingForToken(99)
@@ -112,7 +112,7 @@ describe('EmbeddingLayer.initializeTokenEmbedding', () => {
   })
 
   it('should not reinitialize existing token', () => {
-    const layer = new EmbeddingLayer(32)
+    const layer = createEmbeddingLayer(32)
     layer.initializeTokenEmbedding(10)
     const first = [...layer.getEmbeddingForToken(10)]
 
@@ -123,7 +123,7 @@ describe('EmbeddingLayer.initializeTokenEmbedding', () => {
   })
 
   it('should initialize multiple tokens independently', () => {
-    const layer = new EmbeddingLayer(16)
+    const layer = createEmbeddingLayer(16)
 
     layer.initializeTokenEmbedding(1)
     layer.initializeTokenEmbedding(2)
@@ -141,7 +141,7 @@ describe('EmbeddingLayer.initializeTokenEmbedding', () => {
 
 describe('Embedding normalization', () => {
   it('should produce unit-length vectors', () => {
-    const layer = new EmbeddingLayer(64)
+    const layer = createEmbeddingLayer(64)
     const embedding = layer.getEmbeddingForToken(0)
 
     const magnitude = Math.sqrt(embedding.reduce((sum: number, val: number) => sum + val * val, 0))
@@ -149,7 +149,7 @@ describe('Embedding normalization', () => {
   })
 
   it('should produce values between -1 and 1', () => {
-    const layer = new EmbeddingLayer(100)
+    const layer = createEmbeddingLayer(100)
 
     for (let token = 0; token < 10; token++) {
       const embedding = layer.getEmbeddingForToken(token)
@@ -161,7 +161,7 @@ describe('Embedding normalization', () => {
   })
 
   it('should produce normalized vectors for all tokens', () => {
-    const layer = new EmbeddingLayer(32)
+    const layer = createEmbeddingLayer(32)
 
     for (let token = 0; token < 50; token++) {
       const embedding = layer.getEmbeddingForToken(token)
@@ -174,7 +174,7 @@ describe('Embedding normalization', () => {
     const dimensions = [8, 16, 32, 64, 128]
 
     for (const dim of dimensions) {
-      const layer = new EmbeddingLayer(dim)
+      const layer = createEmbeddingLayer(dim)
       const embedding = layer.getEmbeddingForToken(0)
 
       expect(embedding.length).toBe(dim)
@@ -187,8 +187,8 @@ describe('Embedding normalization', () => {
 
 describe('Embedding randomness', () => {
   it('should produce different embeddings across layers', () => {
-    const layer1 = new EmbeddingLayer(32)
-    const layer2 = new EmbeddingLayer(32)
+    const layer1 = createEmbeddingLayer(32)
+    const layer2 = createEmbeddingLayer(32)
 
     const emb1 = layer1.getEmbeddingForToken(0)
     const emb2 = layer2.getEmbeddingForToken(0)
@@ -197,7 +197,7 @@ describe('Embedding randomness', () => {
   })
 
   it('should produce varied values within an embedding', () => {
-    const layer = new EmbeddingLayer(64)
+    const layer = createEmbeddingLayer(64)
     const embedding = layer.getEmbeddingForToken(0)
 
     const uniqueValues = new Set(embedding.map((v: number) => v.toFixed(4)))

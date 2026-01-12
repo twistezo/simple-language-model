@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
 import {
-  NgramLanguageModel,
+  createNgramLanguageModel,
   sampleNextToken,
   sampleNextTokenWithNucleusSampling,
   sampleNextTokenWithTemperature,
@@ -9,7 +9,7 @@ import {
 
 describe('NgramLanguageModel', () => {
   it('should store and retrieve samples', () => {
-    const model = new NgramLanguageModel()
+    const model = createNgramLanguageModel()
     const samples = [
       { contextTokens: [0, 1], nextToken: 2 },
       { contextTokens: [1, 2], nextToken: 3 },
@@ -20,12 +20,12 @@ describe('NgramLanguageModel', () => {
   })
 
   it('should return undefined for unknown context', () => {
-    const model = new NgramLanguageModel()
+    const model = createNgramLanguageModel()
     expect(model.getNextTokenDistribution([9, 9])).toBeUndefined()
   })
 
   it('should accumulate counts for repeated samples', () => {
-    const model = new NgramLanguageModel()
+    const model = createNgramLanguageModel()
     const samples = [
       { contextTokens: [0, 1], nextToken: 2 },
       { contextTokens: [0, 1], nextToken: 2 },
@@ -40,7 +40,7 @@ describe('NgramLanguageModel', () => {
   })
 
   it('should handle multiple next tokens for same context', () => {
-    const model = new NgramLanguageModel()
+    const model = createNgramLanguageModel()
     const samples = [
       { contextTokens: [0, 1], nextToken: 10 },
       { contextTokens: [0, 1], nextToken: 20 },
@@ -56,7 +56,7 @@ describe('NgramLanguageModel', () => {
   })
 
   it('should handle empty samples array', () => {
-    const model = new NgramLanguageModel()
+    const model = createNgramLanguageModel()
     model.trainOnSamples([])
 
     expect(model.getNextTokenDistribution([0, 1])).toBeUndefined()

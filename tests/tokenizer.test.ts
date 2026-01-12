@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'bun:test'
 
 import { tokenizeText } from '../src/tokenizer'
-import { Vocabulary } from '../src/vocabulary'
+import { createVocabulary } from '../src/vocabulary'
 
 describe('Tokenizer', () => {
   it('should tokenize text into tokens when training=true', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('A cat', vocabulary, true)
     expect(tokens.length).toBe(2)
     expect(tokens[0]).toBe(0)
@@ -13,7 +13,7 @@ describe('Tokenizer', () => {
   })
 
   it('should tokenize known words when training=false', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     vocabulary.addWord('a')
     vocabulary.addWord('cat')
     const tokens = tokenizeText('A cat', vocabulary, false)
@@ -21,12 +21,12 @@ describe('Tokenizer', () => {
   })
 
   it('should throw error on unknown word when training=false', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     expect(() => tokenizeText('unknown', vocabulary, false)).toThrow('Unknown word: unknown')
   })
 
   it('should convert text to lowercase', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('HELLO World', vocabulary, true)
 
     expect(vocabulary.decodeTokenToWord(tokens[0]!)).toBe('hello')
@@ -34,14 +34,14 @@ describe('Tokenizer', () => {
   })
 
   it('should handle multiple spaces between words', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('hello    world', vocabulary, true)
 
     expect(tokens.length).toBe(2)
   })
 
   it('should handle single word', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('hello', vocabulary, true)
 
     expect(tokens.length).toBe(1)
@@ -49,7 +49,7 @@ describe('Tokenizer', () => {
   })
 
   it('should handle repeated words', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('cat cat cat', vocabulary, true)
 
     expect(tokens.length).toBe(3)
@@ -58,7 +58,7 @@ describe('Tokenizer', () => {
   })
 
   it('should maintain word order', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('one two three four five', vocabulary, true)
 
     expect(tokens).toEqual([0, 1, 2, 3, 4])
@@ -67,7 +67,7 @@ describe('Tokenizer', () => {
   })
 
   it('should handle mixed case consistently', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     vocabulary.addWord('hello')
 
     const tokens1 = tokenizeText('HELLO', vocabulary, false)
@@ -79,7 +79,7 @@ describe('Tokenizer', () => {
   })
 
   it('should handle punctuation attached to words', () => {
-    const vocabulary = new Vocabulary()
+    const vocabulary = createVocabulary()
     const tokens = tokenizeText('hello, world!', vocabulary, true)
 
     expect(tokens.length).toBe(2)
