@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+import figlet from 'figlet'
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
 
 import {
@@ -11,9 +13,10 @@ import {
 import { generateText, trainLanguageModel } from './llm'
 
 async function main() {
-  console.log('LLM')
+  const logo = await figlet.text('AI - LLM')
+  console.log(chalk.green(logo))
 
-  console.group('\nDefaults:')
+  console.group(chalk.green('\nDefaults'))
   console.log(`Attention layers: ${DEFAULT_ATTENTION_LAYERS}`)
   console.log(`Context size: ${DEFAULT_CONTEXT_SIZE}`)
   console.log(`Embedding dimension: ${DEFAULT_EMBEDDING_DIMENSION}`)
@@ -22,11 +25,12 @@ async function main() {
   console.log(`Top P: ${DEFAULT_TOP_P}`)
   console.groupEnd()
 
-  console.group('\nDataset:')
+  console.group(chalk.green('\nDataset'))
   const startTime = Date.now()
 
-  console.log(`Loading 'simple-wikipedia.parquet'...`)
-  const parquetFile = await asyncBufferFromFile('dataset/simple-wikipedia.parquet')
+  const DATASET_PATH = 'dataset/simple-wikipedia.parquet'
+  console.log(`Loading "${DATASET_PATH}"...`)
+  const parquetFile = await asyncBufferFromFile(DATASET_PATH)
 
   console.log('Parsing records...')
   const parquetRecords = await parquetReadObjects({ file: parquetFile })
@@ -42,19 +46,23 @@ async function main() {
   console.log(`- Collected ${trainingTexts.length} text entries`)
   console.groupEnd()
 
-  console.log(`\nTraining ${DEFAULT_CONTEXT_SIZE}-gram language model...`)
+  console.log(chalk.green(`\nTraining ${DEFAULT_CONTEXT_SIZE}-gram language model...`))
   const languageModel = trainLanguageModel(trainingTexts, DEFAULT_CONTEXT_SIZE)
 
   const trainingDurationSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
-  console.log(`\nModel trained in ${trainingDurationSeconds}s.\n`)
+  console.log(`- Model trained in ${trainingDurationSeconds}s.\n`)
 
+  console.group(chalk.green('Usage'))
   console.log(
-    `Hint: This is a ${DEFAULT_CONTEXT_SIZE}-gram model, so enter at least ${DEFAULT_CONTEXT_SIZE} words.`,
+    `This is a ${DEFAULT_CONTEXT_SIZE}-gram model, so enter at least ${DEFAULT_CONTEXT_SIZE} words.`,
   )
+  console.log('Type "exit" or press enter with an empty line to quit.\n')
+  console.groupEnd()
 
   while (true) {
-    const userInput = prompt('Prompt>')
-    if (userInput === null) break
+    const userInput = prompt(chalk.green('Prompt>'))
+    if (userInput === null || userInput.toLowerCase() === 'exit') break
+    if (userInput.trim() === '') continue
 
     const inputWords = userInput.trim().split(/\s+/)
     if (inputWords.length < DEFAULT_CONTEXT_SIZE) {
@@ -62,13 +70,19 @@ async function main() {
       continue
     }
 
-    const generatedOutput = generateText(
-      languageModel,
-      userInput,
-      DEFAULT_GENERATION_LENGTH,
-      DEFAULT_TEMPERATURE,
-    )
-    console.log(generatedOutput)
+    try {
+      const generatedOutput = generateText(
+        languageModel,
+        userInput,
+        DEFAULT_GENERATION_LENGTH,
+        DEFAULT_TEMPERATURE,
+      )
+      console.log(generatedOutput)
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error.message)
+      }
+    }
   }
 }
 
