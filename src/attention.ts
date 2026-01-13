@@ -8,6 +8,9 @@ export type AttentionWeightMatrix = number[][]
  * Applies multiple layers of self-attention to embeddings with residual connections.
  * Each layer computes attention and adds the result back to the input,
  * allowing the model to preserve original information while learning new patterns.
+ *
+ * Note: Attention is used here as a conceptual demonstration—it shows how the mechanism works,
+ * but without a neural network it cannot be used for prediction.
  */
 export const applyMultiLayerAttentionWithResidualConnections = (
   embeddings: EmbeddingVector[],

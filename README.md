@@ -55,6 +55,7 @@ An implementation of a basic LLM pipeline as a working next-token prediction mod
 ### 3. Attention Mechanism
 
 - Helps the model understand relationships between tokens by computing attention scores across the context
+- Note: Attention is used here as a conceptual demonstration—it shows how the mechanism works, but without a neural network it cannot be used for prediction.
 - File: `attention.ts`
 - [Wikipedia: Attention](<https://en.wikipedia.org/wiki/Attention_(machine_learning)>)
 

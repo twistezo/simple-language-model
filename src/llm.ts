@@ -28,7 +28,7 @@ export const generateText = (
     const contextEmbeddings =
       languageModel.embeddingLayer.getEmbeddingsForTokenSequence(currentContext)
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- See readme
     const _contextualEmbeddings = applyMultiLayerAttentionWithResidualConnections(
       contextEmbeddings,
       languageModel.attentionLayerCount,
