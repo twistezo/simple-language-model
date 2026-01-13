@@ -10,6 +10,7 @@ import {
   DEFAULT_TEMPERATURE,
   DEFAULT_TOP_P,
 } from './constants'
+import { selectDatasetFile } from './dataset'
 import { generateText, trainLanguageModel } from './llm'
 
 async function main() {
@@ -25,12 +26,12 @@ async function main() {
   console.log(`Top P: ${DEFAULT_TOP_P}`)
   console.groupEnd()
 
+  const datasetPath = selectDatasetFile()
   console.group(chalk.green('\nDataset'))
   const startTime = Date.now()
 
-  const DATASET_PATH = 'dataset/simple-wikipedia.parquet'
-  console.log(`Loading "${DATASET_PATH}"...`)
-  const parquetFile = await asyncBufferFromFile(DATASET_PATH)
+  console.log(`Loading "${datasetPath}"...`)
+  const parquetFile = await asyncBufferFromFile(datasetPath)
 
   console.log('Parsing records...')
   const parquetRecords = await parquetReadObjects({ file: parquetFile })
@@ -80,7 +81,7 @@ async function main() {
       console.log(generatedOutput)
     } catch (error) {
       if (error instanceof Error) {
-        console.log(error.message)
+        console.log(chalk.red(error.message))
       }
     }
   }

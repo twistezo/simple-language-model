@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+
 import type { TokenIdentifier, Vocabulary } from './vocabulary'
 
 /**
@@ -19,7 +21,7 @@ export const tokenizeText = (
       : vocabulary.encodeWordToToken(word)
 
     if (tokenIdentifier === undefined) {
-      throw new Error(`Unknown word: ${word}`)
+      throw new Error(chalk.red(`Unknown word: ${word}`))
     }
 
     return tokenIdentifier
