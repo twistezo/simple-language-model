@@ -10,7 +10,7 @@ import {
   DEFAULT_TEMPERATURE,
   DEFAULT_TOP_P,
 } from './constants'
-import { selectDatasetFile } from './dataset'
+import { extractTextFromRecord, selectDatasetFile } from './dataset'
 import { generateText, trainLanguageModel } from './llm'
 
 async function main() {
@@ -40,8 +40,11 @@ async function main() {
   console.log('Preparing training texts...')
   const trainingTexts: string[] = []
   for (const record of parquetRecords) {
-    if (typeof record.text === 'string') {
-      trainingTexts.push(record.text)
+    const texts = extractTextFromRecord(record)
+    for (const text of texts) {
+      if (typeof text === 'string' && text.length > 0) {
+        trainingTexts.push(text)
+      }
     }
   }
   console.log(`- Collected ${trainingTexts.length} text entries`)

@@ -19,7 +19,7 @@ export const selectDatasetFile = (): string => {
     console.log(`  ${file}${isDefault ? ' (default)' : ''}`)
   })
 
-  const userChoice = prompt('\nEnter filename or press Enter for default.')
+  const userChoice = prompt(chalk.green('\nEnter filename or press Enter for default>'))
   if (userChoice === null || userChoice.trim() === '') {
     console.log(`- Using default: ${DEFAULT_DATASET}`)
 
@@ -35,4 +35,17 @@ export const selectDatasetFile = (): string => {
   console.log(chalk.red(`Using default: ${DEFAULT_DATASET}`))
 
   return `${DATASET_DIR}/${DEFAULT_DATASET}`
+}
+
+// Universal text extraction from any record structure
+export const extractTextFromRecord = (record: unknown): string[] => {
+  if (typeof record === 'string') {
+    return [record]
+  } else if (Array.isArray(record)) {
+    return record.flatMap(extractTextFromRecord)
+  } else if (record && typeof record === 'object') {
+    return Object.values(record).flatMap(extractTextFromRecord)
+  } else {
+    return []
+  }
 }
