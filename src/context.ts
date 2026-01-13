@@ -5,6 +5,10 @@ export type TrainingSample = {
   nextToken: TokenIdentifier
 }
 
+/**
+ * Creates training samples from a sequence of tokens using a sliding window approach.
+ * Each sample contains a context window of tokens and the token that follows it.
+ */
 export const buildTrainingSamples = (
   tokenSequence: TokenIdentifier[],
   contextWindowSize: number,

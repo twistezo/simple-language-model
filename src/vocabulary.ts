@@ -9,8 +9,6 @@ export type Vocabulary = {
 /**
  * Creates a vocabulary manager that maps words to unique token identifiers and vice versa.
  * Provides methods to add words, encode words to tokens, and decode tokens back to words.
- *
- * @see Unit tests for usage examples
  */
 export const createVocabulary = (): Vocabulary => {
   const tokenIdentifierToWord = new Map<TokenIdentifier, string>()

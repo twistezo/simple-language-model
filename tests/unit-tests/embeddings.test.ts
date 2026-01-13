@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { createEmbeddingLayer } from '../src/embeddings'
+import { createEmbeddingLayer } from '../../src/embeddings'
 
 describe('EmbeddingLayer', () => {
   it('should create embeddings with correct dimension', () => {

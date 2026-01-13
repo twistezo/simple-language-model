@@ -1,8 +1,6 @@
 # Copilot Instructions
 
-Always follow rules from /docs folder.
-
-## Global rules:
+## Global rules
 
 - Use Bun as runtime, package manager, bundler, and test runner
 - Use ESLint and Prettier for code formatting and linting
@@ -10,10 +8,11 @@ Always follow rules from /docs folder.
 - Prefer TypeScript types over interfaces
 - Use arrow functions for function definitions
 - Import and export TypeScript types using `import type` and `export type`
+- Make sure there is no unused exports
 - Always add blank line before return statements
 - Use clear and descriptive names for variables and functions
 - Prefer functions over classes
-- Do not use this keyword
+- Do not use the this keyword
 
 ## Programming principles
 

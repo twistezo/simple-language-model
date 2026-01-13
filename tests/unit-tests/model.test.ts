@@ -5,7 +5,7 @@ import {
   sampleNextToken,
   sampleNextTokenWithNucleusSampling,
   sampleNextTokenWithTemperature,
-} from '../src/model'
+} from '../../src/model'
 
 describe('NgramLanguageModel', () => {
   it('should store and retrieve samples', () => {

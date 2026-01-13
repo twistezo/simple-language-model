@@ -6,7 +6,7 @@ import {
   applySelfAttention,
   calculateScaledAttentionScores,
   convertScoresToProbabilities,
-} from '../src/attention'
+} from '../../src/attention'
 
 describe('convertScoresToProbabilities', () => {
   it('should convert scores to probabilities that sum to 1', () => {

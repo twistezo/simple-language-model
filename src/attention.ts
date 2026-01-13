@@ -28,7 +28,7 @@ export const applyMultiLayerAttentionWithResidualConnections = (
   return current.to2DArray()
 }
 
-const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] =>
+export const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] =>
   applyAttentionWeightsToEmbeddings(embeddings, calculateScaledAttentionScores(embeddings))
 
 /**
@@ -36,7 +36,9 @@ const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] =>
  * Multiplies the embedding matrix by its transpose, scales by the square root of the
  * embedding dimension, and converts the resulting scores to probability distributions.
  */
-const calculateScaledAttentionScores = (embeddings: EmbeddingVector[]): AttentionWeightMatrix => {
+export const calculateScaledAttentionScores = (
+  embeddings: EmbeddingVector[],
+): AttentionWeightMatrix => {
   if (embeddings.length === 0) return []
 
   const E = new Matrix(embeddings)
@@ -50,7 +52,7 @@ const calculateScaledAttentionScores = (embeddings: EmbeddingVector[]): Attentio
  * Subtracts the maximum score for numerical stability before applying exponential.
  * The resulting probabilities sum to 1.
  */
-const convertScoresToProbabilities = (scores: number[]): number[] => {
+export const convertScoresToProbabilities = (scores: number[]): number[] => {
   const max = Math.max(...scores)
   const exp = scores.map(s => Math.exp(s - max))
   const sum = exp.reduce((a, b) => a + b, 0)
@@ -63,7 +65,7 @@ const convertScoresToProbabilities = (scores: number[]): number[] => {
  * This transforms the embeddings based on the learned attention patterns,
  * allowing the model to focus on relevant parts of the input.
  */
-const applyAttentionWeightsToEmbeddings = (
+export const applyAttentionWeightsToEmbeddings = (
   embeddings: EmbeddingVector[],
   weights: AttentionWeightMatrix,
 ): EmbeddingVector[] => {

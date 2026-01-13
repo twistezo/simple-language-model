@@ -14,6 +14,14 @@ export type LanguageModel = {
   vocabulary: Vocabulary
 }
 
+/**
+ * Generates text using a language model based on the provided prompt.
+ *
+ * This function takes a starting prompt and iteratively predicts the next word
+ * by using n-gram token distributions and attention mechanisms. It samples tokens
+ * based on temperature and nucleus sampling parameters, then decodes them back
+ * into readable text until the desired generation length is reached.
+ */
 export const generateText = (
   languageModel: LanguageModel,
   promptText: string,
@@ -53,6 +61,13 @@ export const generateText = (
   return outputWords.join(' ')
 }
 
+/**
+ * Trains a language model using the provided training texts.
+ *
+ * This function creates a vocabulary from the input texts, generates training samples
+ * based on a sliding context window, builds an n-gram model for token prediction,
+ * and initializes embedding vectors for all tokens encountered during training.
+ */
 export const trainLanguageModel = (
   trainingTexts: string[],
   contextWindowSize: number,

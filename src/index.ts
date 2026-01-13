@@ -1,21 +1,36 @@
 import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
 
-import { DEFAULT_CONTEXT_SIZE, DEFAULT_GENERATION_LENGTH, DEFAULT_TEMPERATURE } from './constants'
+import {
+  DEFAULT_ATTENTION_LAYERS,
+  DEFAULT_CONTEXT_SIZE,
+  DEFAULT_EMBEDDING_DIMENSION,
+  DEFAULT_GENERATION_LENGTH,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_TOP_P,
+} from './constants'
 import { generateText, trainLanguageModel } from './llm'
 
 async function main() {
-  console.log('Starting LLM demo...')
-  console.log('Dataset: dataset/simple-wikipedia.parquet')
-  console.log(`Context size: ${DEFAULT_CONTEXT_SIZE}, Temperature: ${DEFAULT_TEMPERATURE}`)
+  console.log('LLM')
 
+  console.group('\nDefaults:')
+  console.log(`Attention layers: ${DEFAULT_ATTENTION_LAYERS}`)
+  console.log(`Context size: ${DEFAULT_CONTEXT_SIZE}`)
+  console.log(`Embedding dimension: ${DEFAULT_EMBEDDING_DIMENSION}`)
+  console.log(`Generation length: ${DEFAULT_GENERATION_LENGTH}`)
+  console.log(`Temperature: ${DEFAULT_TEMPERATURE}`)
+  console.log(`Top P: ${DEFAULT_TOP_P}`)
+  console.groupEnd()
+
+  console.group('\nDataset:')
   const startTime = Date.now()
 
+  console.log(`Loading 'simple-wikipedia.parquet'...`)
   const parquetFile = await asyncBufferFromFile('dataset/simple-wikipedia.parquet')
-  console.log('File loaded into memory.')
 
-  console.log('Parsing Parquet records...')
+  console.log('Parsing records...')
   const parquetRecords = await parquetReadObjects({ file: parquetFile })
-  console.log(`Loaded ${parquetRecords.length} records.`)
+  console.log(`- Loaded ${parquetRecords.length} records`)
 
   console.log('Preparing training texts...')
   const trainingTexts: string[] = []
@@ -24,20 +39,18 @@ async function main() {
       trainingTexts.push(record.text)
     }
   }
-  console.log(`Collected ${trainingTexts.length} text entries.`)
+  console.log(`- Collected ${trainingTexts.length} text entries`)
+  console.groupEnd()
 
-  console.log(`Training ${DEFAULT_CONTEXT_SIZE}-gram language model (this may take a while)...`)
+  console.log(`\nTraining ${DEFAULT_CONTEXT_SIZE}-gram language model...`)
   const languageModel = trainLanguageModel(trainingTexts, DEFAULT_CONTEXT_SIZE)
 
   const trainingDurationSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
-  console.log(`Model trained in ${trainingDurationSeconds}s.\n`)
+  console.log(`\nModel trained in ${trainingDurationSeconds}s.\n`)
 
-  console.log('How to use:')
   console.log(
-    `- This is a ${DEFAULT_CONTEXT_SIZE}-gram model, so enter at least ${DEFAULT_CONTEXT_SIZE} words`,
+    `Hint: This is a ${DEFAULT_CONTEXT_SIZE}-gram model, so enter at least ${DEFAULT_CONTEXT_SIZE} words.`,
   )
-  console.log(`- Example: "a cat" works, "cat" does not`)
-  console.log('')
 
   while (true) {
     const userInput = prompt('Prompt>')

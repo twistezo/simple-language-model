@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { createVocabulary } from '../src/vocabulary'
+import { createVocabulary } from '../../src/vocabulary'
 
 describe('Vocabulary', () => {
   it('should add and encode words correctly', () => {

@@ -4,23 +4,6 @@ This project was written as a hands-on learning exercise to understand how langu
 
 It is inspired by the YouTube video: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
 
-## Details
-
-### What it is?
-
-An implementation of a basic LLM pipeline as a working next-token prediction model based on statistics and context (n-grams).
-
-1. Tokenization
-   - Text -> Tokens
-2. Embeddings
-   - Tokens -> Vectors
-3. Transformer
-   - Context processing
-4. Probabilites
-   - Token scores
-5. Sampling
-   - Select one
-
 ## Project structure
 
 `dataset/` contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB of 770k rows of text from English Wikipedia.
@@ -36,6 +19,33 @@ An implementation of a basic LLM pipeline as a working next-token prediction mod
 - `model.ts` – statistical language model + sampling with temperature and Top P
 - `tokenizer.ts` – text -> tokens
 - `vocabulary.ts` – word <-> number mapping (token IDs)
+
+## Usage
+
+Requirements:
+
+- [Bun](https://bun.sh/)
+
+Scripts:
+
+- `bun i` to install dependencies
+- `bun start` to start app
+- `bun lint` to lint code with ESLint
+- `bun typecheck` to check TypeScript types
+- `bun test` to run tests
+
+## Steps
+
+1. Tokenization
+   - Text -> Tokens
+2. Embeddings
+   - Tokens -> Vectors
+3. Transformer
+   - Context processing
+4. Probabilites
+   - Token scores
+5. Sampling
+   - Select one
 
 ## Step-by-step
 
@@ -55,7 +65,7 @@ An implementation of a basic LLM pipeline as a working next-token prediction mod
 ### 3. Attention Mechanism
 
 - Helps the model understand relationships between tokens by computing attention scores across the context
-- Note: Attention is used here as a conceptual demonstration—it shows how the mechanism works, but without a neural network it cannot be used for prediction.
+- Note: Attention is used here purely for illustrative purposes—it demonstrates how the mechanism works, but without a neural network it cannot be used for prediction.
 - File: `attention.ts`
 - [Wikipedia: Attention](<https://en.wikipedia.org/wiki/Attention_(machine_learning)>)
 
@@ -63,38 +73,28 @@ An implementation of a basic LLM pipeline as a working next-token prediction mod
 
 - Counts how often each word follows a given context and converts those counts into probabilities
 - File: `model.ts`
+- [Wikipedia: Probability Distribution](https://en.wikipedia.org/wiki/Probability_distribution)
 
 ### 5. Sampling
 
-- **Temperature**: Controls randomness
-  - `T < 1` → more deterministic (precision)
-  - `T = 1` → proportional to probability
-  - `T > 1` → more random (creativity)
-- **Top P (Nucleus Sampling)**: Only considers tokens whose cumulative probability adds up to P
-  - Prevents sampling from very unlikely tokens
-  - Maintains diversity within the "nucleus"
+- Temperature: Controls randomness
+  - `T < 1`: more deterministic (precision)
+  - `T = 1`: proportional to probability
+  - `T > 1`: more random (creativity)
+- Top P (Nucleus Sampling): Only considers the most likely tokens whose combined probability reaches P, balancing diversity and quality
 - File: `model.ts`
-
-### Autoregressive Generation
-
-- Starts with user input
-- Predicts next token using all 5 steps
-- Appends token, slides context window
-- Repeats for `n` tokens
-- File: `llm.ts`, `index.ts`
+- [Wikipedia: Top-p Sampling](https://en.wikipedia.org/wiki/Top-p_sampling)
 
 ## Configuration
 
 Default values in `constants.ts`:
 
-| Parameter                     | Default | Description                             |
-| ----------------------------- | ------- | --------------------------------------- |
-| `DEFAULT_CONTEXT_SIZE`        | 3       | N-gram size (how many words as context) |
-| `DEFAULT_TEMPERATURE`         | 0.7     | Sampling randomness                     |
-| `DEFAULT_GENERATION_LENGTH`   | 15      | Number of tokens to generate            |
-| `DEFAULT_TOP_P`               | 0.9     | Nucleus sampling threshold              |
-| `DEFAULT_EMBEDDING_DIMENSION` | 64      | Size of embedding vectors               |
-| `DEFAULT_ATTENTION_LAYERS`    | 4       | Number of attention layers              |
+- `DEFAULT_ATTENTION_LAYERS`: Number of attention layers
+- `DEFAULT_CONTEXT_SIZE`: N-gram size (how many words as context)
+- `DEFAULT_EMBEDDING_DIMENSION`: Size of embedding vectors
+- `DEFAULT_GENERATION_LENGTH`: Number of tokens to generate
+- `DEFAULT_TEMPERATURE`: Sampling randomness
+- `DEFAULT_TOP_P`: Nucleus sampling threshold
 
 ## How to run
 

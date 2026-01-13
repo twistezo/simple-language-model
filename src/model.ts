@@ -10,6 +10,11 @@ export type NgramLanguageModel = {
 
 export type TokenFrequencyDistribution = Map<TokenIdentifier, number>
 
+/**
+ * Creates an n-gram language model that learns token patterns from training data.
+ * The model stores frequency distributions of tokens that follow specific context sequences,
+ * allowing it to predict the most likely next token given a context.
+ */
 export const createNgramLanguageModel = (): NgramLanguageModel => {
   const contextToNextTokenFrequencies = new Map<string, TokenFrequencyDistribution>()
 
@@ -38,6 +43,11 @@ export const createNgramLanguageModel = (): NgramLanguageModel => {
   return { getNextTokenDistribution, trainOnSamples }
 }
 
+/**
+ * Selects the next token from a probability distribution using temperature-based sampling.
+ * Higher temperature values produce more random/creative outputs, while lower values
+ * make the selection more deterministic by favoring higher-frequency tokens.
+ */
 export const sampleNextTokenWithTemperature = (
   tokenDistribution: TokenFrequencyDistribution,
   temperature = 1,
@@ -64,6 +74,16 @@ export const sampleNextTokenWithTemperature = (
   return temperatureAdjustedWeights[0]?.tokenIdentifier ?? null
 }
 
+/**
+ * Samples the next token from a probability distribution using nucleus (top-p) sampling.
+ *
+ * This function selects a token by first applying temperature scaling to adjust the randomness,
+ * then filtering to keep only the most probable tokens whose cumulative probability exceeds
+ * the nucleus threshold (top-p). Finally, it randomly samples from this filtered set.
+ *
+ * Higher temperature increases randomness, lower temperature makes selection more deterministic.
+ * The nucleus threshold controls how many top tokens are considered for sampling.
+ */
 export const sampleNextTokenWithNucleusSampling = (
   tokenDistribution: TokenFrequencyDistribution,
   nucleusProbabilityThreshold: number,
@@ -104,6 +124,11 @@ export const sampleNextTokenWithNucleusSampling = (
   return nucleusTokens[0]?.tokenIdentifier ?? null
 }
 
+/**
+ * Samples the next token from a probability distribution using either nucleus sampling or temperature-based sampling.
+ * If a valid nucleus probability threshold (between 0 and 1) is provided, it uses nucleus sampling.
+ * Otherwise, it falls back to temperature-based sampling.
+ */
 export const sampleNextToken = (
   tokenDistribution: TokenFrequencyDistribution,
   temperature = 1,

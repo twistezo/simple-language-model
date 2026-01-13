@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { generateText, trainLanguageModel } from '../src/llm'
+import { generateText, trainLanguageModel } from '../../src/llm'
 
 const trainingData = [
   'A cat is on the mat',

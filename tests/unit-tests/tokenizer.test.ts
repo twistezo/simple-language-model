@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
-import { tokenizeText } from '../src/tokenizer'
-import { createVocabulary } from '../src/vocabulary'
+import { tokenizeText } from '../../src/tokenizer'
+import { createVocabulary } from '../../src/vocabulary'
 
 describe('Tokenizer', () => {
   it('should tokenize text into tokens when training=true', () => {

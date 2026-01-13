@@ -15,10 +15,9 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun run src/index.ts",
-    "lint": "bun lint:code && bun lint:types",
-    "lint:code": "eslint src --ext ts",
-    "lint:types": "tsc --noEmit"
+    "start": "bun run src/index.ts",
+    "lint": "eslint src --ext ts",
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
   "dependencies": {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { buildTrainingSamples } from '../src/context'
+import { buildTrainingSamples } from '../../src/context'
 
 describe('Context builder', () => {
   it('should create correct samples for context size 2', () => {
