@@ -5,8 +5,9 @@ import type { EmbeddingVector } from './embeddings'
 export type AttentionWeightMatrix = number[][]
 
 /**
- * Softmax: converts raw scores to probabilities (sum = 1)
- * Uses numerical stability trick: subtract max before exp
+ * Converts an array of scores into a probability distribution using the softmax function.
+ * Subtracts the maximum score for numerical stability before applying exponential.
+ * The resulting probabilities sum to 1.
  */
 export const convertScoresToProbabilities = (scores: number[]): number[] => {
   const max = Math.max(...scores)
@@ -17,8 +18,9 @@ export const convertScoresToProbabilities = (scores: number[]): number[] => {
 }
 
 /**
- * Scaled dot-product attention: scores = (Q @ K^T) / sqrt(d)
- * Then softmax per row to get attention weights
+ * Computes attention scores between embedding vectors using scaled dot-product attention.
+ * Multiplies the embedding matrix by its transpose, scales by the square root of the
+ * embedding dimension, and converts the resulting scores to probability distributions.
  */
 export const calculateScaledAttentionScores = (
   embeddings: EmbeddingVector[],
@@ -32,7 +34,9 @@ export const calculateScaledAttentionScores = (
 }
 
 /**
- * Apply attention: output = weights @ values
+ * Applies attention weights to embedding vectors by performing matrix multiplication.
+ * This transforms the embeddings based on the learned attention patterns,
+ * allowing the model to focus on relevant parts of the input.
  */
 export const applyAttentionWeightsToEmbeddings = (
   embeddings: EmbeddingVector[],
@@ -47,7 +51,9 @@ export const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVect
   applyAttentionWeightsToEmbeddings(embeddings, calculateScaledAttentionScores(embeddings))
 
 /**
- * Multi-layer attention with residual connections: output = input + attention(input)
+ * Applies multiple layers of self-attention to embeddings with residual connections.
+ * Each layer computes attention and adds the result back to the input,
+ * allowing the model to preserve original information while learning new patterns.
  */
 export const applyMultiLayerAttentionWithResidualConnections = (
   embeddings: EmbeddingVector[],

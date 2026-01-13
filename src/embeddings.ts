@@ -12,7 +12,8 @@ export type EmbeddingLayer = {
 export type EmbeddingVector = number[]
 
 /**
- * Normalize vector to unit length (L2 normalization)
+ * Normalizes an embedding vector to unit length.
+ * If the vector has zero magnitude, returns the original vector unchanged.
  */
 const normalizeToUnitLength = (vector: EmbeddingVector): EmbeddingVector => {
   const v = Matrix.rowVector(vector)
@@ -21,6 +22,13 @@ const normalizeToUnitLength = (vector: EmbeddingVector): EmbeddingVector => {
   return magnitude === 0 ? vector : v.div(magnitude).to1DArray()
 }
 
+/**
+ * Creates an embedding layer that maps tokens to dense vector representations.
+ * Each token is assigned a random normalized vector of the specified dimension.
+ * Embeddings are lazily initialized when first requested and cached for reuse.
+ *
+ * @see Unit tests for usage examples
+ */
 export const createEmbeddingLayer = (dimension: number): EmbeddingLayer => {
   const embeddings = new Map<TokenIdentifier, EmbeddingVector>()
 
