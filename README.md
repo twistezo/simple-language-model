@@ -10,18 +10,18 @@ It was inspired by the YouTube video: ["How LLMs Actually Generate Text" by Lear
 
 - [`dataset/`](./dataset/) contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB with 770k rows of text from English Wikipedia.
 
-- `src/`:
-  - `attention.ts` - self-attention mechanism
-  - `constants.ts` – default configuration values
-  - `context.ts` – context windows (n-grams)
-  - `embeddings.ts` – tokens -> vectors in semantic space
-  - `index.ts` – training + cli
-  - `llm.ts` – combines all components into the LLM
-  - `model.ts` – statistical language model + sampling with temperature and Top P
-  - `tokenizer.ts` – text -> tokens
-  - `vocabulary.ts` – word <-> number mapping (token IDs)
+- [`src/`](./src/):
+  - [`attention.ts`](./src/attention.ts) - self-attention mechanism
+  - [`constants.ts`](./src/constants.ts) – default configuration values
+  - [`context.ts`](./src/context.ts) – context windows (n-grams)
+  - [`embeddings.ts`](./src/embeddings.ts) – tokens -> vectors in semantic space
+  - [`index.ts`](./src/index.ts) – training + cli
+  - [`llm.ts`](./src/llm.ts) – combines all components into the LLM
+  - [`model.ts`](./src/model.ts) – statistical language model + sampling with temperature and Top P
+  - [`tokenizer.ts`](./src/tokenizer.ts) – text -> tokens
+  - [`vocabulary.ts`](./src/vocabulary.ts) – word <-> number mapping (token IDs)
 
-- `tests/` contains unit and integration tests.
+- [`tests/`](./tests/) contains unit and integration tests.
 
 ## Usage
 
@@ -38,17 +38,6 @@ Scripts:
 - `bun test` to run all tests
 
 ## Steps
-
-1. Tokenization
-   - Text -> Tokens
-2. Embeddings
-   - Tokens -> Vectors
-3. Transformer
-   - Context processing
-4. Probabilites
-   - Token scores
-5. Sampling
-   - Select one
 
 ### 1. Tokenization
 
