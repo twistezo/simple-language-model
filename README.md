@@ -2,23 +2,24 @@
 
 This project was written as a hands-on learning exercise to understand how language models work by building one from scratch. It uses plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
 
-It is inspired by the YouTube video: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
+It was inspired by the YouTube video: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
 
-## Project structure
+## Structure
 
-`dataset/` contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB of 770k rows of text from English Wikipedia.
+- `dataset/` contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB with 770k rows of text from English Wikipedia.
 
-`src/` contains:
+- `src/`:
+  - `attention.ts` - self-attention mechanism
+  - `constants.ts` – default configuration values
+  - `context.ts` – context windows (n-grams)
+  - `embeddings.ts` – tokens -> vectors in semantic space
+  - `index.ts` – training + cli
+  - `llm.ts` – combines all components into the LLM
+  - `model.ts` – statistical language model + sampling with temperature and Top P
+  - `tokenizer.ts` – text -> tokens
+  - `vocabulary.ts` – word <-> number mapping (token IDs)
 
-- `attention.ts` – self-attention mechanism
-- `constants.ts` – default configuration values
-- `context.ts` – context windows (n-grams)
-- `embeddings.ts` – tokens -> vectors in semantic space
-- `index.ts` – training + interactive text generation
-- `llm.ts` – combines all components into the LLM
-- `model.ts` – statistical language model + sampling with temperature and Top P
-- `tokenizer.ts` – text -> tokens
-- `vocabulary.ts` – word <-> number mapping (token IDs)
+- `tests/` contains unit and integration tests.
 
 ## Usage
 
@@ -32,7 +33,7 @@ Scripts:
 - `bun start` to start app
 - `bun lint` to lint code with ESLint
 - `bun typecheck` to check TypeScript types
-- `bun test` to run tests
+- `bun test` to run all tests
 
 ## Steps
 
@@ -46,8 +47,6 @@ Scripts:
    - Token scores
 5. Sampling
    - Select one
-
-## Step-by-step
 
 ### 1. Tokenization
 
@@ -87,7 +86,7 @@ Scripts:
 
 ## Configuration
 
-Default values in `constants.ts`:
+Defaults from `constants.ts`:
 
 - `DEFAULT_ATTENTION_LAYERS`: Number of attention layers
 - `DEFAULT_CONTEXT_SIZE`: N-gram size (how many words as context)
@@ -95,9 +94,3 @@ Default values in `constants.ts`:
 - `DEFAULT_GENERATION_LENGTH`: Number of tokens to generate
 - `DEFAULT_TEMPERATURE`: Sampling randomness
 - `DEFAULT_TOP_P`: Nucleus sampling threshold
-
-## How to run
-
-1. Install dependencies: `bun install`
-2. Run: `bun run dev`
-3. Enter a starting phrase and observe generated text
