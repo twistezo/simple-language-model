@@ -1,12 +1,14 @@
 # AI - LLM
 
-This project was written as a hands-on learning exercise to understand how language models work by building one from scratch. It uses plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
+This project was written as a hands-on learning exercise to understand how language models work by building one from scratch.
+
+It uses plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
 
 It was inspired by the YouTube video: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
 
 ## Structure
 
-- `dataset/` contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB with 770k rows of text from English Wikipedia.
+- [`dataset/`](./dataset/) contains [rahular/simple-wikipedia](https://huggingface.co/datasets/rahular/simple-wikipedia) data in Parquet format. It consists of 87 MB with 770k rows of text from English Wikipedia.
 
 - `src/`:
   - `attention.ts` - self-attention mechanism
