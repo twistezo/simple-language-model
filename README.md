@@ -1,8 +1,8 @@
-# Simple Language Model
+# Simple Language Model (n-gram statistical)
 
 This project was written as a hands-on learning exercise to understand how language models work by building one from scratch.
 
-It is a simple n-gram (statistical) language model that illustrates some concepts used in modern LLMs, but without heavy machinery like neural networks or backpropagation.
+It is a simple n-gram statistical language model that illustrates some concepts used in modern LLMs, but without heavy machinery like neural networks or backpropagation.
 
 Written in plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
 
