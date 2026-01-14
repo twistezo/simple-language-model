@@ -1,4 +1,4 @@
-# Simple Language Model (n-gram statistical)
+# Simple Language Model (n-gram)
 
 This project was written as a hands-on learning exercise to understand how language models work by building one from scratch.
 
