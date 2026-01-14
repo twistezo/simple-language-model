@@ -1,4 +1,4 @@
-# Simple LLM
+# Simple Language Model
 
 This project was written as a hands-on learning exercise to understand how language models work by building one from scratch.
 
@@ -66,7 +66,7 @@ Scripts:
 ### Step 3. Attention Mechanism
 
 - Helps the model understand relationships between tokens by computing attention scores across the context
-- **Note: Attention is used here purely for illustrative purposes—it demonstrates how the mechanism could work, but without a neural network it cannot be used for prediction.**
+- **Note: Attention is used here for educational purposes-it illustrates the underlying principles of the mechanism. Without a neural network, however, it cannot be used for prediction.**
 - File: `attention.ts`
 - [Wikipedia: Attention](<https://en.wikipedia.org/wiki/Attention_(machine_learning)>)
 
