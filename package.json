@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "bun run src/index.ts",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src tests --ext ts",
     "typecheck": "tsc --noEmit"
   },
   "type": "module",

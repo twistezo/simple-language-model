@@ -4,9 +4,6 @@ import {
   DEFAULT_ATTENTION_LAYERS,
   DEFAULT_CONTEXT_SIZE,
   DEFAULT_EMBEDDING_DIMENSION,
-  DEFAULT_GENERATION_LENGTH,
-  DEFAULT_TEMPERATURE,
-  DEFAULT_TOP_P,
 } from '../../src/defaults'
 import { generateText, trainLanguageModel } from '../../src/llm'
 

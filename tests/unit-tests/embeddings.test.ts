@@ -165,7 +165,9 @@ describe('Embedding normalization', () => {
 
     for (let token = 0; token < 50; token++) {
       const embedding = layer.getEmbeddingForToken(token)
-      const magnitude = Math.sqrt(embedding.reduce((sum: number, val: number) => sum + val * val, 0))
+      const magnitude = Math.sqrt(
+        embedding.reduce((sum: number, val: number) => sum + val * val, 0),
+      )
       expect(magnitude).toBeCloseTo(1, 4)
     }
   })
@@ -179,7 +181,9 @@ describe('Embedding normalization', () => {
 
       expect(embedding.length).toBe(dim)
 
-      const magnitude = Math.sqrt(embedding.reduce((sum: number, val: number) => sum + val * val, 0))
+      const magnitude = Math.sqrt(
+        embedding.reduce((sum: number, val: number) => sum + val * val, 0),
+      )
       expect(magnitude).toBeCloseTo(1, 4)
     }
   })
