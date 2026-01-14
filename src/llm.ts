@@ -71,9 +71,11 @@ export const generateText = ({
   for (let step = 0; step < DEFAULT_GENERATION_LENGTH; step++) {
     const contextEmbeddings = model.embeddingLayer.getEmbeddingsForTokenSequence(currentContext)
 
-    // TODO: tutaj skonczylem refaktor <---------------------------------------------------------------
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- See readme
+    // Note: Attention is used here for educational purposes-it illustrates
+    // the underlying principles of the mechanism.
+    // Without a neural network it cannot be used for prediction.
+    //
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _contextualEmbeddings = applyMultiLayerAttentionWithResidualConnections(
       contextEmbeddings,
       model.attentionLayerCount,
@@ -83,10 +85,14 @@ export const generateText = ({
       model.ngramModel.getNextToken(currentContext)
     if (!nextTokenDistribution) break
 
-    const nextToken = sampleNextToken(nextTokenDistribution, DEFAULT_TEMPERATURE, DEFAULT_TOP_P)
+    const nextToken: null | TokenId = sampleNextToken(
+      nextTokenDistribution,
+      DEFAULT_TEMPERATURE,
+      DEFAULT_TOP_P,
+    )
     if (nextToken === null) break
 
-    const decodedWord = model.vocabulary.decodeTokenToWord(nextToken)
+    const decodedWord: string = model.vocabulary.decodeTokenToWord(nextToken)
     outputWords.push(decodedWord)
 
     currentContext = [...currentContext.slice(1), nextToken]

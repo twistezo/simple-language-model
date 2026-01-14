@@ -14,6 +14,8 @@ export type EmbeddingVector = number[]
 /**
  * Creates an embedding layer that maps tokens to dense vector representations.
  * Each token is assigned a random normalized vector of the specified dimension.
+ *
+ * Source: Wikipedia, various blog posts and articles
  */
 export const createEmbeddingLayer = (dimension: number): EmbeddingLayer => {
   const embeddings = new Map<TokenId, EmbeddingVector>()
@@ -42,6 +44,8 @@ export const createEmbeddingLayer = (dimension: number): EmbeddingLayer => {
 
 /**
  * Normalizes an embedding vector to unit length.
+ *
+ * Source: Wikipedia, various blog posts and articles
  */
 const normalizeToUnitLength = (vector: EmbeddingVector): EmbeddingVector => {
   const v = Matrix.rowVector(vector)

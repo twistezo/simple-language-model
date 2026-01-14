@@ -8,6 +8,11 @@ export type NgramLanguageModel = {
 
 export type TokenFrequencyDistribution = Map<TokenId, number>
 
+type TemperatureAdjustedWeightEntry = {
+  adjustedWeight: number
+  tokenId: TokenId
+}
+
 /**
  * Creates an n-gram language model that learns token patterns from training data.
  */
@@ -41,80 +46,71 @@ export const createNgramLanguageModel = (): NgramLanguageModel => {
 }
 
 /**
- * Selects the next token from a probability distribution using temperature-based sampling.
- * Higher temperature values produce more random/creative outputs, while lower values
- * make the selection more deterministic by favoring higher-frequency tokens.
+ * Samples the next token from a probability distribution using either nucleus sampling or temperature-based sampling.
  */
-export const sampleNextTokenWithTemperature = (
+export const sampleNextToken = (
   tokenDistribution: TokenFrequencyDistribution,
-  temperature = 1,
+  temperature: number,
+  nucleusProbabilityThreshold: number,
 ): null | TokenId => {
-  const distributionEntries = [...tokenDistribution.entries()]
-  if (distributionEntries.length === 0) return null
-
-  const temperatureAdjustedWeights = distributionEntries.map(([tokenId, frequency]) => ({
-    adjustedWeight: Math.pow(frequency, 1 / temperature),
-    tokenId,
-  }))
-
-  const totalWeight = temperatureAdjustedWeights.reduce(
-    (sum, entry) => sum + entry.adjustedWeight,
-    0,
-  )
-  let randomThreshold = Math.random() * totalWeight
-
-  for (const entry of temperatureAdjustedWeights) {
-    randomThreshold -= entry.adjustedWeight
-    if (randomThreshold <= 0) return entry.tokenId
+  if (nucleusProbabilityThreshold > 0 && nucleusProbabilityThreshold < 1) {
+    return sampleNextTokenWithNucleusSampling(
+      tokenDistribution,
+      nucleusProbabilityThreshold,
+      temperature,
+    )
+  } else {
+    return sampleNextTokenWithTemperature(tokenDistribution, temperature)
   }
-
-  return temperatureAdjustedWeights[0]?.tokenId ?? null
 }
 
 /**
  * Samples the next token from a probability distribution using nucleus (top-p) sampling.
  *
- * This function selects a token by first applying temperature scaling to adjust the randomness,
- * then filtering to keep only the most probable tokens whose cumulative probability exceeds
- * the nucleus threshold (top-p). Finally, it randomly samples from this filtered set.
- *
- * Higher temperature increases randomness, lower temperature makes selection more deterministic.
- * The nucleus threshold controls how many top tokens are considered for sampling.
+ * Source: Wikipedia, various blog posts and articles
  */
 export const sampleNextTokenWithNucleusSampling = (
   tokenDistribution: TokenFrequencyDistribution,
   nucleusProbabilityThreshold: number,
-  temperature = 1,
+  temperature: number,
 ): null | TokenId => {
-  const distributionEntries = [...tokenDistribution.entries()]
+  const distributionEntries: [TokenId, number][] = [...tokenDistribution.entries()]
   if (distributionEntries.length === 0) return null
 
-  const temperatureAdjustedWeights = distributionEntries
-    .map(([tokenId, frequency]) => ({
+  const temperatureAdjustedWeights: TemperatureAdjustedWeightEntry[] = distributionEntries
+    .map(([tokenId, frequency]: [TokenId, number]) => ({
       adjustedWeight: Math.pow(frequency, 1 / temperature),
       tokenId,
     }))
-    .sort((entryA, entryB) => entryB.adjustedWeight - entryA.adjustedWeight)
+    .sort(
+      (entryA: TemperatureAdjustedWeightEntry, entryB: TemperatureAdjustedWeightEntry): number =>
+        entryB.adjustedWeight - entryA.adjustedWeight,
+    )
 
-  const totalWeight = temperatureAdjustedWeights.reduce(
-    (sum, entry) => sum + entry.adjustedWeight,
+  const totalWeight: number = temperatureAdjustedWeights.reduce(
+    (sum: number, entry: TemperatureAdjustedWeightEntry): number => sum + entry.adjustedWeight,
     0,
   )
 
-  let cumulativeProbability = 0
-  const nucleusTokens: typeof temperatureAdjustedWeights = []
+  let cumulativeProbability: number = 0
+  const nucleusTokens: TemperatureAdjustedWeightEntry[] = []
 
   for (const entry of temperatureAdjustedWeights) {
     cumulativeProbability += entry.adjustedWeight / totalWeight
     nucleusTokens.push(entry)
+
     if (cumulativeProbability >= nucleusProbabilityThreshold) break
   }
 
-  const nucleusTotalWeight = nucleusTokens.reduce((sum, entry) => sum + entry.adjustedWeight, 0)
-  let randomThreshold = Math.random() * nucleusTotalWeight
+  const nucleusTotalWeight: number = nucleusTokens.reduce(
+    (sum: number, entry: TemperatureAdjustedWeightEntry): number => sum + entry.adjustedWeight,
+    0,
+  )
+  let randomThreshold: number = Math.random() * nucleusTotalWeight
 
   for (const entry of nucleusTokens) {
     randomThreshold -= entry.adjustedWeight
+
     if (randomThreshold <= 0) return entry.tokenId
   }
 
@@ -122,26 +118,35 @@ export const sampleNextTokenWithNucleusSampling = (
 }
 
 /**
- * Samples the next token from a probability distribution using either nucleus sampling or temperature-based sampling.
- * If a valid nucleus probability threshold (between 0 and 1) is provided, it uses nucleus sampling.
- * Otherwise, it falls back to temperature-based sampling.
+ * Selects the next token from a probability distribution using temperature-based sampling.
+ *
+ * Source: Wikipedia, various blog posts and articles
  */
-export const sampleNextToken = (
+export const sampleNextTokenWithTemperature = (
   tokenDistribution: TokenFrequencyDistribution,
-  temperature = 1,
-  nucleusProbabilityThreshold?: number,
+  temperature: number,
 ): null | TokenId => {
-  if (
-    nucleusProbabilityThreshold !== undefined &&
-    nucleusProbabilityThreshold > 0 &&
-    nucleusProbabilityThreshold < 1
-  ) {
-    return sampleNextTokenWithNucleusSampling(
-      tokenDistribution,
-      nucleusProbabilityThreshold,
-      temperature,
-    )
+  const distributionEntries: [TokenId, number][] = [...tokenDistribution.entries()]
+  if (distributionEntries.length === 0) return null
+
+  const temperatureAdjustedWeights: TemperatureAdjustedWeightEntry[] = distributionEntries.map(
+    ([tokenId, frequency]: [TokenId, number]): TemperatureAdjustedWeightEntry => ({
+      adjustedWeight: Math.pow(frequency, 1 / temperature),
+      tokenId,
+    }),
+  )
+
+  const totalWeight: number = temperatureAdjustedWeights.reduce(
+    (sum: number, entry: TemperatureAdjustedWeightEntry): number => sum + entry.adjustedWeight,
+    0,
+  )
+
+  let randomThreshold: number = Math.random() * totalWeight
+  for (const entry of temperatureAdjustedWeights) {
+    randomThreshold -= entry.adjustedWeight
+
+    if (randomThreshold <= 0) return entry.tokenId
   }
 
-  return sampleNextTokenWithTemperature(tokenDistribution, temperature)
+  return temperatureAdjustedWeights[0]?.tokenId ?? null
 }

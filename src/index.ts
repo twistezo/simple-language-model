@@ -7,9 +7,13 @@ import { DEFAULT_CONTEXT_SIZE, printDefaults } from './defaults'
 import { generateText, type LanguageModel, trainLanguageModel } from './llm'
 
 async function main() {
-  const logo: string = await figlet.text('Simple LLM')
+  const logo: string = await figlet.text('SLM')
   console.log(chalk.green(logo))
-  // TODO: dodac krotkie info o programie z redame <-----------------------------------------------------
+  console.log(
+    `This is a Simple Language Model, n-gram (statistical)
+that illustrates some concepts used in modern LLMs
+but without heavy machinery like neural networks or backpropagation.`,
+  )
   printDefaults()
 
   const datasetPath: string = selectFile()
@@ -21,11 +25,11 @@ async function main() {
 
   console.log('Parsing records...')
   const parquetRecords: Record<string, unknown>[] = await parquetReadObjects({ file: parquetFile })
-  console.log(`- Loaded ${parquetRecords.length} records`)
+  console.log(`- Loaded ${parquetRecords.length.toLocaleString('pl-PL')} records`)
 
   console.log('Preparing training texts...')
   const trainingTexts: string[] = prepareTrainingTexts(parquetRecords)
-  console.log(`- Collected ${trainingTexts.length} text entries`)
+  console.log(`- Collected ${trainingTexts.length.toLocaleString('pl-PL')} text entries`)
   console.groupEnd()
 
   console.log(chalk.green(`\nTraining ${DEFAULT_CONTEXT_SIZE}-gram language model...`))

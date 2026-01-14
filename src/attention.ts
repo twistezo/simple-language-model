@@ -6,11 +6,6 @@ export type AttentionWeightMatrix = number[][]
 
 /**
  * Applies multiple layers of self-attention to embeddings with residual connections.
- * Each layer computes attention and adds the result back to the input,
- * allowing the model to preserve original information while learning new patterns.
- *
- * Note: Attention is used here as a conceptual demonstration—it shows how the mechanism works,
- * but without a neural network it cannot be used for prediction.
  */
 export const applyMultiLayerAttentionWithResidualConnections = (
   embeddings: EmbeddingVector[],
@@ -19,45 +14,16 @@ export const applyMultiLayerAttentionWithResidualConnections = (
   if (embeddings.length === 0) return []
 
   let current = new Matrix(embeddings)
-
   for (let i = 0; i < layers; i++) {
-    const attended = new Matrix(applySelfAttention(current.to2DArray()))
+    const attended: Matrix = new Matrix(applySelfAttention(current.to2DArray()))
     current = current.add(attended)
   }
 
   return current.to2DArray()
 }
 
-export const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] =>
-  applyAttentionWeightsToEmbeddings(embeddings, calculateScaledAttentionScores(embeddings))
-
-/**
- * Computes attention scores between embedding vectors using scaled dot-product attention.
- * Multiplies the embedding matrix by its transpose, scales by the square root of the
- * embedding dimension, and converts the resulting scores to probability distributions.
- */
-export const calculateScaledAttentionScores = (
-  embeddings: EmbeddingVector[],
-): AttentionWeightMatrix => {
-  if (embeddings.length === 0) return []
-
-  const E = new Matrix(embeddings)
-  const scores = E.mmul(E.transpose()).div(Math.sqrt(E.columns))
-
-  return scores.to2DArray().map(convertScoresToProbabilities)
-}
-
-/**
- * Converts an array of scores into a probability distribution using the softmax function.
- * Subtracts the maximum score for numerical stability before applying exponential.
- * The resulting probabilities sum to 1.
- */
-export const convertScoresToProbabilities = (scores: number[]): number[] => {
-  const max = Math.max(...scores)
-  const exp = scores.map(s => Math.exp(s - max))
-  const sum = exp.reduce((a, b) => a + b, 0)
-
-  return exp.map(e => e / sum)
+export const applySelfAttention = (embeddings: EmbeddingVector[]): EmbeddingVector[] => {
+  return applyAttentionWeightsToEmbeddings(embeddings, calculateScaledAttentionScores(embeddings))
 }
 
 /**
@@ -72,4 +38,29 @@ export const applyAttentionWeightsToEmbeddings = (
   if (embeddings.length === 0) return []
 
   return new Matrix(weights).mmul(new Matrix(embeddings)).to2DArray()
+}
+
+/**
+ * Computes attention scores between embedding vectors using scaled dot-product attention.
+ */
+export const calculateScaledAttentionScores = (
+  embeddings: EmbeddingVector[],
+): AttentionWeightMatrix => {
+  if (embeddings.length === 0) return []
+
+  const E: Matrix = new Matrix(embeddings)
+  const scores: Matrix = E.mmul(E.transpose()).div(Math.sqrt(E.columns))
+
+  return scores.to2DArray().map(convertScoresToProbabilities)
+}
+
+/**
+ * Converts an array of scores into a probability distribution using the softmax function.
+ */
+export const convertScoresToProbabilities = (scores: number[]): number[] => {
+  const max: number = Math.max(...scores)
+  const exp: number[] = scores.map(s => Math.exp(s - max))
+  const sum: number = exp.reduce((a, b) => a + b, 0)
+
+  return exp.map(e => e / sum)
 }
