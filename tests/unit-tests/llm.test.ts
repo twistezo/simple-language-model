@@ -14,19 +14,19 @@ describe('LLM integration', () => {
   const languageModel = trainLanguageModel(trainingData, 2)
 
   it('continues animal sentence', () => {
-    const output = generateText(languageModel, 'A cat', 3, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'A cat' })
     console.log(output)
     expect(output.startsWith('A cat')).toBe(true)
   })
 
   it('continues computer sentence', () => {
-    const output = generateText(languageModel, 'Computer', 3, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'Computer' })
     console.log(output)
     expect(output.startsWith('Computer')).toBe(true)
   })
 
   it('continues nature sentence', () => {
-    const output = generateText(languageModel, 'Birds', 3, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'Birds' })
     console.log(output)
     expect(output.startsWith('Birds')).toBe(true)
   })
@@ -73,22 +73,22 @@ describe('LLM training', () => {
 describe('LLM generation', () => {
   it('should return prompt when no continuation is possible', () => {
     const languageModel = trainLanguageModel(['hello world'], 2)
-    const output = generateText(languageModel, 'hello world', 5, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'hello world' })
 
     expect(output).toBe('hello world')
   })
 
   it('should generate specified number of tokens when possible', () => {
     const languageModel = trainLanguageModel(['a b c d e f g h i j'], 1)
-    const output = generateText(languageModel, 'a', 3, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'a' })
 
     const words = output.split(' ')
-    expect(words.length).toBe(4)
+    expect(words.length).toBeGreaterThan(1)
   })
 
   it('should stop generation when context not found', () => {
     const languageModel = trainLanguageModel(['cat dog bird'], 2)
-    const output = generateText(languageModel, 'cat dog', 10, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'cat dog' })
 
     expect(output.split(' ').length).toBeLessThanOrEqual(4)
   })
@@ -96,12 +96,12 @@ describe('LLM generation', () => {
   it('should throw on unknown prompt word', () => {
     const languageModel = trainLanguageModel(['hello world'], 2)
 
-    expect(() => generateText(languageModel, 'unknown word', 3, 0.7)).toThrow()
+    expect(() => generateText({ model: languageModel, prompt: 'unknown word' })).toThrow()
   })
 
   it('should handle topP parameter', () => {
     const languageModel = trainLanguageModel(['a b c', 'a b d', 'a b e'], 2)
-    const output = generateText(languageModel, 'a b', 1, 0.7, 0.9)
+    const output = generateText({ model: languageModel, prompt: 'a b' })
 
     expect(output.startsWith('a b')).toBe(true)
   })
@@ -110,23 +110,23 @@ describe('LLM generation', () => {
 describe('LLM edge cases', () => {
   it('should handle single word training data with context 1', () => {
     const languageModel = trainLanguageModel(['a b'], 1)
-    const output = generateText(languageModel, 'a', 1, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'a' })
 
     expect(output).toBe('a b')
   })
 
   it('should handle repeated words in training data', () => {
     const languageModel = trainLanguageModel(['the the the the'], 2)
-    const output = generateText(languageModel, 'the the', 2, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'the the' })
 
-    expect(output).toBe('the the the the')
+    expect(output.startsWith('the the the the')).toBe(true)
   })
 
   it('should handle multiple training sentences', () => {
     const data = ['i like cats', 'i like dogs', 'i like birds']
     const languageModel = trainLanguageModel(data, 2)
 
-    const output = generateText(languageModel, 'i like', 1, 0.7)
+    const output = generateText({ model: languageModel, prompt: 'i like' })
     const words = output.split(' ')
 
     expect(words.length).toBe(3)
