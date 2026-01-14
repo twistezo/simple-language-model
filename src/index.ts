@@ -9,11 +9,6 @@ import { generateText, type LanguageModel, trainLanguageModel } from './llm'
 async function main() {
   const logo: string = await figlet.text('SLM')
   console.log(chalk.green(logo))
-  console.log(
-    `This is a Simple Language Model, n-gram (statistical)
-that illustrates some concepts used in modern LLMs
-but without heavy machinery like neural networks or backpropagation.`,
-  )
   printDefaults()
 
   const datasetPath: string = selectFile()
