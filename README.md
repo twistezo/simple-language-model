@@ -48,6 +48,17 @@ Scripts:
 
 - [`tests/`](./tests/) contains unit and integration tests.
 
+## Configuration
+
+Defaults from `defaults.ts`:
+
+- `DEFAULT_ATTENTION_LAYERS`: Number of attention layers
+- `DEFAULT_CONTEXT_SIZE`: N-gram size (how many words as context)
+- `DEFAULT_EMBEDDING_DIMENSION`: Size of embedding vectors
+- `DEFAULT_GENERATION_LENGTH`: Number of tokens to generate
+- `DEFAULT_TEMPERATURE`: Sampling randomness
+- `DEFAULT_TOP_P`: Nucleus sampling threshold
+
 ## Algorithm
 
 ### Step 1. Tokenization
@@ -85,14 +96,3 @@ Scripts:
 - Top P (Nucleus Sampling): Only considers the most likely tokens whose combined probability reaches P, balancing diversity and quality
 - File: `model.ts`
 - [Wikipedia: Top-p Sampling](https://en.wikipedia.org/wiki/Top-p_sampling)
-
-## Configuration
-
-Defaults from `defaults.ts`:
-
-- `DEFAULT_ATTENTION_LAYERS`: Number of attention layers
-- `DEFAULT_CONTEXT_SIZE`: N-gram size (how many words as context)
-- `DEFAULT_EMBEDDING_DIMENSION`: Size of embedding vectors
-- `DEFAULT_GENERATION_LENGTH`: Number of tokens to generate
-- `DEFAULT_TEMPERATURE`: Sampling randomness
-- `DEFAULT_TOP_P`: Nucleus sampling threshold
