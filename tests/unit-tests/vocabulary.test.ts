@@ -5,8 +5,8 @@ import { createVocabulary } from '../../src/vocabulary'
 describe('Vocabulary', () => {
   it('should add and encode words correctly', () => {
     const vocabulary = createVocabulary()
-    const token1 = vocabulary.addWord('cat')
-    const token2 = vocabulary.addWord('dog')
+    const token1 = vocabulary.add('cat')
+    const token2 = vocabulary.add('dog')
 
     expect(token1).toBe(0)
     expect(token2).toBe(1)
@@ -17,8 +17,8 @@ describe('Vocabulary', () => {
 
   it('should decode tokens correctly', () => {
     const vocabulary = createVocabulary()
-    const tokenIdentifier = vocabulary.addWord('bird')
-    expect(vocabulary.decodeTokenToWord(tokenIdentifier)).toBe('bird')
+    const tokenId = vocabulary.add('bird')
+    expect(vocabulary.decodeTokenToWord(tokenId)).toBe('bird')
   })
 
   it('should throw on decoding unknown token', () => {
@@ -28,9 +28,9 @@ describe('Vocabulary', () => {
 
   it('should return same token for duplicate word additions', () => {
     const vocabulary = createVocabulary()
-    const first = vocabulary.addWord('hello')
-    const second = vocabulary.addWord('hello')
-    const third = vocabulary.addWord('hello')
+    const first = vocabulary.add('hello')
+    const second = vocabulary.add('hello')
+    const third = vocabulary.add('hello')
 
     expect(first).toBe(second)
     expect(second).toBe(third)
@@ -39,25 +39,25 @@ describe('Vocabulary', () => {
 
   it('should return undefined for encoding unknown word', () => {
     const vocabulary = createVocabulary()
-    vocabulary.addWord('known')
+    vocabulary.add('known')
 
     expect(vocabulary.encodeWordToToken('unknown')).toBeUndefined()
   })
 
   it('should handle empty string as valid word', () => {
     const vocabulary = createVocabulary()
-    const tokenIdentifier = vocabulary.addWord('')
+    const tokenId = vocabulary.add('')
 
-    expect(tokenIdentifier).toBe(0)
+    expect(tokenId).toBe(0)
     expect(vocabulary.encodeWordToToken('')).toBe(0)
-    expect(vocabulary.decodeTokenToWord(tokenIdentifier)).toBe('')
+    expect(vocabulary.decodeTokenToWord(tokenId)).toBe('')
   })
 
   it('should handle special characters', () => {
     const vocabulary = createVocabulary()
-    const t1 = vocabulary.addWord('hello!')
-    const t2 = vocabulary.addWord('@#$%')
-    const t3 = vocabulary.addWord('über')
+    const t1 = vocabulary.add('hello!')
+    const t2 = vocabulary.add('@#$%')
+    const t3 = vocabulary.add('über')
 
     expect(vocabulary.decodeTokenToWord(t1)).toBe('hello!')
     expect(vocabulary.decodeTokenToWord(t2)).toBe('@#$%')
@@ -68,7 +68,7 @@ describe('Vocabulary', () => {
     const vocabulary = createVocabulary()
 
     for (let i = 0; i < 10000; i++) {
-      vocabulary.addWord(`word${i}`)
+      vocabulary.add(`word${i}`)
     }
 
     expect(vocabulary.encodeWordToToken('word0')).toBe(0)
@@ -80,7 +80,7 @@ describe('Vocabulary', () => {
     const vocabulary = createVocabulary()
     const words = ['apple', 'banana', 'cherry', 'date', 'elderberry']
 
-    const tokens = words.map(word => vocabulary.addWord(word))
+    const tokens = words.map(word => vocabulary.add(word))
 
     for (let i = 0; i < words.length; i++) {
       expect(vocabulary.encodeWordToToken(words[i]!)).toBe(tokens[i])

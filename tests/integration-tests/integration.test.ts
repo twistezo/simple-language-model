@@ -7,7 +7,7 @@ import {
   DEFAULT_GENERATION_LENGTH,
   DEFAULT_TEMPERATURE,
   DEFAULT_TOP_P,
-} from '../../src/constants'
+} from '../../src/defaults'
 import { generateText, trainLanguageModel } from '../../src/llm'
 
 const sampleTrainingTexts = [

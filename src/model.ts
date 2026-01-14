@@ -1,46 +1,43 @@
 import type { TrainingSample } from './context'
-import type { TokenIdentifier } from './vocabulary'
+import type { TokenId } from './vocabulary'
 
 export type NgramLanguageModel = {
-  getNextTokenDistribution: (
-    contextTokens: TokenIdentifier[],
-  ) => TokenFrequencyDistribution | undefined
-  trainOnSamples: (trainingSamples: TrainingSample[]) => void
+  getNextToken: (contextTokens: TokenId[]) => TokenFrequencyDistribution | undefined
+  train: (trainingSamples: TrainingSample[]) => void
 }
 
-export type TokenFrequencyDistribution = Map<TokenIdentifier, number>
+export type TokenFrequencyDistribution = Map<TokenId, number>
 
 /**
  * Creates an n-gram language model that learns token patterns from training data.
- * The model stores frequency distributions of tokens that follow specific context sequences,
- * allowing it to predict the most likely next token given a context.
  */
 export const createNgramLanguageModel = (): NgramLanguageModel => {
-  const contextToNextTokenFrequencies = new Map<string, TokenFrequencyDistribution>()
+  const contextToNextTokenFrequencies: Map<string, TokenFrequencyDistribution> = new Map<
+    string,
+    TokenFrequencyDistribution
+  >()
 
-  const getNextTokenDistribution = (
-    contextTokens: TokenIdentifier[],
-  ): TokenFrequencyDistribution | undefined => {
-    const contextKey = contextTokens.join(',')
-
-    return contextToNextTokenFrequencies.get(contextKey)
+  const getNextToken = (contextTokens: TokenId[]): TokenFrequencyDistribution | undefined => {
+    return contextToNextTokenFrequencies.get(contextTokens.join(','))
   }
 
-  const trainOnSamples = (trainingSamples: TrainingSample[]): void => {
-    for (const { contextTokens, nextToken } of trainingSamples) {
-      const contextKey = contextTokens.join(',')
+  const train = (samples: TrainingSample[]): void => {
+    for (const { contextTokens, nextToken } of samples) {
+      const contextKey: string = contextTokens.join(',')
 
       if (!contextToNextTokenFrequencies.has(contextKey)) {
         contextToNextTokenFrequencies.set(contextKey, new Map())
       }
 
-      const frequencyDistribution = contextToNextTokenFrequencies.get(contextKey)!
-      const currentCount = frequencyDistribution.get(nextToken) ?? 0
+      const frequencyDistribution: TokenFrequencyDistribution =
+        contextToNextTokenFrequencies.get(contextKey)!
+
+      const currentCount: number = frequencyDistribution.get(nextToken) ?? 0
       frequencyDistribution.set(nextToken, currentCount + 1)
     }
   }
 
-  return { getNextTokenDistribution, trainOnSamples }
+  return { getNextToken, train }
 }
 
 /**
@@ -51,13 +48,13 @@ export const createNgramLanguageModel = (): NgramLanguageModel => {
 export const sampleNextTokenWithTemperature = (
   tokenDistribution: TokenFrequencyDistribution,
   temperature = 1,
-): null | TokenIdentifier => {
+): null | TokenId => {
   const distributionEntries = [...tokenDistribution.entries()]
   if (distributionEntries.length === 0) return null
 
-  const temperatureAdjustedWeights = distributionEntries.map(([tokenIdentifier, frequency]) => ({
+  const temperatureAdjustedWeights = distributionEntries.map(([tokenId, frequency]) => ({
     adjustedWeight: Math.pow(frequency, 1 / temperature),
-    tokenIdentifier,
+    tokenId,
   }))
 
   const totalWeight = temperatureAdjustedWeights.reduce(
@@ -68,10 +65,10 @@ export const sampleNextTokenWithTemperature = (
 
   for (const entry of temperatureAdjustedWeights) {
     randomThreshold -= entry.adjustedWeight
-    if (randomThreshold <= 0) return entry.tokenIdentifier
+    if (randomThreshold <= 0) return entry.tokenId
   }
 
-  return temperatureAdjustedWeights[0]?.tokenIdentifier ?? null
+  return temperatureAdjustedWeights[0]?.tokenId ?? null
 }
 
 /**
@@ -88,14 +85,14 @@ export const sampleNextTokenWithNucleusSampling = (
   tokenDistribution: TokenFrequencyDistribution,
   nucleusProbabilityThreshold: number,
   temperature = 1,
-): null | TokenIdentifier => {
+): null | TokenId => {
   const distributionEntries = [...tokenDistribution.entries()]
   if (distributionEntries.length === 0) return null
 
   const temperatureAdjustedWeights = distributionEntries
-    .map(([tokenIdentifier, frequency]) => ({
+    .map(([tokenId, frequency]) => ({
       adjustedWeight: Math.pow(frequency, 1 / temperature),
-      tokenIdentifier,
+      tokenId,
     }))
     .sort((entryA, entryB) => entryB.adjustedWeight - entryA.adjustedWeight)
 
@@ -118,10 +115,10 @@ export const sampleNextTokenWithNucleusSampling = (
 
   for (const entry of nucleusTokens) {
     randomThreshold -= entry.adjustedWeight
-    if (randomThreshold <= 0) return entry.tokenIdentifier
+    if (randomThreshold <= 0) return entry.tokenId
   }
 
-  return nucleusTokens[0]?.tokenIdentifier ?? null
+  return nucleusTokens[0]?.tokenId ?? null
 }
 
 /**
@@ -133,7 +130,7 @@ export const sampleNextToken = (
   tokenDistribution: TokenFrequencyDistribution,
   temperature = 1,
   nucleusProbabilityThreshold?: number,
-): null | TokenIdentifier => {
+): null | TokenId => {
   if (
     nucleusProbabilityThreshold !== undefined &&
     nucleusProbabilityThreshold > 0 &&

@@ -1,10 +1,21 @@
 import { applyMultiLayerAttentionWithResidualConnections } from './attention'
-import { DEFAULT_ATTENTION_LAYERS, DEFAULT_EMBEDDING_DIMENSION, DEFAULT_TOP_P } from './constants'
-import { buildTrainingSamples } from './context'
+import { buildTrainingSamples, type TrainingSample } from './context'
+import {
+  DEFAULT_ATTENTION_LAYERS,
+  DEFAULT_EMBEDDING_DIMENSION,
+  DEFAULT_GENERATION_LENGTH,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_TOP_P,
+} from './defaults'
 import { createEmbeddingLayer, type EmbeddingLayer } from './embeddings'
-import { createNgramLanguageModel, type NgramLanguageModel, sampleNextToken } from './model'
+import {
+  createNgramLanguageModel,
+  type NgramLanguageModel,
+  sampleNextToken,
+  type TokenFrequencyDistribution,
+} from './model'
 import { tokenizeText } from './tokenizer'
-import { createVocabulary, type Vocabulary } from './vocabulary'
+import { createVocabulary, type TokenId, type Vocabulary } from './vocabulary'
 
 export type LanguageModel = {
   attentionLayerCount: number
@@ -14,79 +25,26 @@ export type LanguageModel = {
   vocabulary: Vocabulary
 }
 
-/**
- * Generates text using a language model based on the provided prompt.
- *
- * This function takes a starting prompt and iteratively predicts the next word
- * by using n-gram token distributions and attention mechanisms. It samples tokens
- * based on temperature and nucleus sampling parameters, then decodes them back
- * into readable text until the desired generation length is reached.
- */
-export const generateText = (
-  languageModel: LanguageModel,
-  promptText: string,
-  generationLength: number,
-  temperature: number,
-  nucleusProbabilityThreshold = DEFAULT_TOP_P,
-): string => {
-  let currentContext = tokenizeText(promptText, languageModel.vocabulary, false)
-  const outputWords = [...promptText.split(/\s+/)]
-
-  for (let step = 0; step < generationLength; step++) {
-    const contextEmbeddings =
-      languageModel.embeddingLayer.getEmbeddingsForTokenSequence(currentContext)
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- See readme
-    const _contextualEmbeddings = applyMultiLayerAttentionWithResidualConnections(
-      contextEmbeddings,
-      languageModel.attentionLayerCount,
-    )
-
-    const nextTokenDistribution = languageModel.ngramModel.getNextTokenDistribution(currentContext)
-    if (!nextTokenDistribution) break
-
-    const nextToken = sampleNextToken(
-      nextTokenDistribution,
-      temperature,
-      nucleusProbabilityThreshold,
-    )
-    if (nextToken === null) break
-
-    const decodedWord = languageModel.vocabulary.decodeTokenToWord(nextToken)
-    outputWords.push(decodedWord)
-
-    currentContext = [...currentContext.slice(1), nextToken]
-  }
-
-  return outputWords.join(' ')
-}
-
-/**
- * Trains a language model using the provided training texts.
- *
- * This function creates a vocabulary from the input texts, generates training samples
- * based on a sliding context window, builds an n-gram model for token prediction,
- * and initializes embedding vectors for all tokens encountered during training.
- */
 export const trainLanguageModel = (
   trainingTexts: string[],
   contextWindowSize: number,
   embeddingDimension = DEFAULT_EMBEDDING_DIMENSION,
   attentionLayerCount = DEFAULT_ATTENTION_LAYERS,
 ): LanguageModel => {
-  const vocabulary = createVocabulary()
+  const vocabulary: Vocabulary = createVocabulary()
 
-  const trainingSamples = trainingTexts.flatMap(text =>
-    buildTrainingSamples(tokenizeText(text, vocabulary, true), contextWindowSize),
+  const trainingSamples: TrainingSample[] = trainingTexts.flatMap(
+    (text: string): TrainingSample[] =>
+      buildTrainingSamples(tokenizeText(text, vocabulary, true), contextWindowSize),
   )
 
-  const ngramModel = createNgramLanguageModel()
-  ngramModel.trainOnSamples(trainingSamples)
+  const ngramModel: NgramLanguageModel = createNgramLanguageModel()
+  ngramModel.train(trainingSamples)
 
-  const embeddingLayer = createEmbeddingLayer(embeddingDimension)
+  const embeddingLayer: EmbeddingLayer = createEmbeddingLayer(embeddingDimension)
   for (const sample of trainingSamples) {
-    for (const tokenIdentifier of sample.contextTokens) {
-      embeddingLayer.initializeTokenEmbedding(tokenIdentifier)
+    for (const tokenId of sample.contextTokens) {
+      embeddingLayer.initializeTokenEmbedding(tokenId)
     }
     embeddingLayer.initializeTokenEmbedding(sample.nextToken)
   }
@@ -98,4 +56,41 @@ export const trainLanguageModel = (
     ngramModel,
     vocabulary,
   }
+}
+
+export const generateText = ({
+  model,
+  prompt,
+}: {
+  model: LanguageModel
+  prompt: string
+}): string => {
+  let currentContext: TokenId[] = tokenizeText(prompt, model.vocabulary, false)
+  const outputWords: string[] = [...prompt.split(/\s+/)]
+
+  for (let step = 0; step < DEFAULT_GENERATION_LENGTH; step++) {
+    const contextEmbeddings = model.embeddingLayer.getEmbeddingsForTokenSequence(currentContext)
+
+    // TODO: tutaj skonczylem refaktor <---------------------------------------------------------------
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- See readme
+    const _contextualEmbeddings = applyMultiLayerAttentionWithResidualConnections(
+      contextEmbeddings,
+      model.attentionLayerCount,
+    )
+
+    const nextTokenDistribution: TokenFrequencyDistribution | undefined =
+      model.ngramModel.getNextToken(currentContext)
+    if (!nextTokenDistribution) break
+
+    const nextToken = sampleNextToken(nextTokenDistribution, DEFAULT_TEMPERATURE, DEFAULT_TOP_P)
+    if (nextToken === null) break
+
+    const decodedWord = model.vocabulary.decodeTokenToWord(nextToken)
+    outputWords.push(decodedWord)
+
+    currentContext = [...currentContext.slice(1), nextToken]
+  }
+
+  return outputWords.join(' ')
 }

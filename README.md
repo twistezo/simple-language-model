@@ -1,10 +1,12 @@
-# AI - LLM
+# Simple LLM
 
 This project was written as a hands-on learning exercise to understand how language models work by building one from scratch.
 
-It uses plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
+It is a simple n-gram (statistical) language model that illustrates some concepts used in modern LLMs, but without heavy machinery like neural networks or backpropagation.
 
-It was inspired by the YouTube video: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
+Written in plain TypeScript with no machine learning libraries, walking through each step of next-word prediction.
+
+Inspiration: ["How LLMs Actually Generate Text" by LearnThatStack](https://www.youtube.com/watch?v=NKnZYvZA7w4).
 
 ## Preview
 
@@ -34,7 +36,7 @@ Scripts:
 
 - [`src/`](./src/):
   - [`attention.ts`](./src/attention.ts) - self-attention mechanism
-  - [`constants.ts`](./src/constants.ts) – default configuration values
+  - [`defaults.ts`](./src/defaults.ts) – default configuration values
   - [`context.ts`](./src/context.ts) – context windows (n-grams)
   - [`dataset/`](./src/dataset/) – dataset loading and text extraction
   - [`embeddings.ts`](./src/embeddings.ts) – tokens -> vectors in semantic space
@@ -46,35 +48,35 @@ Scripts:
 
 - [`tests/`](./tests/) contains unit and integration tests.
 
-## Algorithm steps
+## Algorithm
 
-### 1. Tokenization
+### Step 1. Tokenization
 
 - Converts text into tokens (word -> unique number ID)
 - File: `tokenizer.ts`, `vocabulary.ts`
 - [Wikipedia: Tokenization](https://en.wikipedia.org/wiki/Large_language_model#Tokenization)
 
-### 2. Embeddings
+### Step 2. Embeddings
 
 - Converts token IDs into vectors (lists of numbers) where similar words are positioned close together in semantic space
+- **Note: Real LLMs learn embeddings through training. We initialize randomly.**
 - File: `embeddings.ts`
-- Note: Real LLMs learn embeddings through training. We initialize randomly.
 - [Wikipedia: Word Embedding](https://en.wikipedia.org/wiki/Word_embedding)
 
-### 3. Attention Mechanism
+### Step 3. Attention Mechanism
 
 - Helps the model understand relationships between tokens by computing attention scores across the context
-- Note: Attention is used here purely for illustrative purposes—it demonstrates how the mechanism works, but without a neural network it cannot be used for prediction.
+- **Note: Attention is used here purely for illustrative purposes—it demonstrates how the mechanism could work, but without a neural network it cannot be used for prediction.**
 - File: `attention.ts`
 - [Wikipedia: Attention](<https://en.wikipedia.org/wiki/Attention_(machine_learning)>)
 
-### 4. Probability Distribution
+### Step 4. Probability Distribution
 
 - Counts how often each word follows a given context and converts those counts into probabilities
 - File: `model.ts`
 - [Wikipedia: Probability Distribution](https://en.wikipedia.org/wiki/Probability_distribution)
 
-### 5. Sampling
+### Step 5. Sampling
 
 - Temperature: Controls randomness
   - `T < 1`: more deterministic (precision)
@@ -86,7 +88,7 @@ Scripts:
 
 ## Configuration
 
-Defaults from `constants.ts`:
+Defaults from `defaults.ts`:
 
 - `DEFAULT_ATTENTION_LAYERS`: Number of attention layers
 - `DEFAULT_CONTEXT_SIZE`: N-gram size (how many words as context)

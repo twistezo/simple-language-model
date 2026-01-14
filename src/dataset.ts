@@ -4,9 +4,9 @@ import chalk from 'chalk'
 const DEFAULT_DATASET = 'simple-wikipedia.parquet'
 const DATASET_DIR = 'dataset'
 
-export const selectDatasetFile = (): string => {
-  const glob = new Glob('*.parquet')
-  const files = Array.from(glob.scanSync(DATASET_DIR))
+export const selectFile = (): string => {
+  const glob: Glob = new Glob('*.parquet')
+  const files: string[] = Array.from(glob.scanSync(DATASET_DIR))
 
   if (files.length === 0) {
     console.log(chalk.red(`No .parquet files found in ${DATASET_DIR}/`))
@@ -14,19 +14,20 @@ export const selectDatasetFile = (): string => {
   }
 
   console.log(chalk.green('\nAvailable datasets'))
-  files.forEach(file => {
-    const isDefault = file === DEFAULT_DATASET
-    console.log(`  ${file}${isDefault ? ' (default)' : ''}`)
+  files.forEach((file: string): void => {
+    console.log(`  ${file}${file === DEFAULT_DATASET ? ' (default)' : ''}`)
   })
 
-  const userChoice = prompt(chalk.green('\nEnter filename or press Enter for default>'))
+  const userChoice: null | string = prompt(
+    chalk.green('\nEnter filename or press Enter for default>'),
+  )
+
   if (userChoice === null || userChoice.trim() === '') {
     console.log(`- Using default: ${DEFAULT_DATASET}`)
-
     return `${DATASET_DIR}/${DEFAULT_DATASET}`
   }
 
-  const selectedFile = userChoice.trim()
+  const selectedFile: string = userChoice.trim()
   if (files.includes(selectedFile)) {
     return `${DATASET_DIR}/${selectedFile}`
   }
@@ -37,8 +38,22 @@ export const selectDatasetFile = (): string => {
   return `${DATASET_DIR}/${DEFAULT_DATASET}`
 }
 
-// Universal text extraction from any record structure
-export const extractTextFromRecord = (record: unknown): string[] => {
+export const prepareTrainingTexts = (records: Record<string, unknown>[]): string[] => {
+  const trainingTexts: string[] = []
+
+  for (const record of records) {
+    const texts = extractTextFromRecord(record)
+    for (const text of texts) {
+      if (typeof text === 'string' && text.length > 0) {
+        trainingTexts.push(text)
+      }
+    }
+  }
+
+  return trainingTexts
+}
+
+const extractTextFromRecord = (record: unknown): string[] => {
   if (typeof record === 'string') {
     return [record]
   } else if (Array.isArray(record)) {

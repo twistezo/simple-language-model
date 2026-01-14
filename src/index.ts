@@ -1,57 +1,35 @@
 import chalk from 'chalk'
 import figlet from 'figlet'
-import { asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
+import { type AsyncBuffer, asyncBufferFromFile, parquetReadObjects } from 'hyparquet'
 
-import {
-  DEFAULT_ATTENTION_LAYERS,
-  DEFAULT_CONTEXT_SIZE,
-  DEFAULT_EMBEDDING_DIMENSION,
-  DEFAULT_GENERATION_LENGTH,
-  DEFAULT_TEMPERATURE,
-  DEFAULT_TOP_P,
-} from './constants'
-import { extractTextFromRecord, selectDatasetFile } from './dataset'
-import { generateText, trainLanguageModel } from './llm'
+import { prepareTrainingTexts, selectFile } from './dataset'
+import { DEFAULT_CONTEXT_SIZE, printDefaults } from './defaults'
+import { generateText, type LanguageModel, trainLanguageModel } from './llm'
 
 async function main() {
-  const logo = await figlet.text('AI - LLM')
+  const logo: string = await figlet.text('Simple LLM')
   console.log(chalk.green(logo))
+  // TODO: dodac krotkie info o programie z redame <-----------------------------------------------------
+  printDefaults()
 
-  console.group(chalk.green('\nDefaults'))
-  console.log(`Attention layers: ${DEFAULT_ATTENTION_LAYERS}`)
-  console.log(`Context size: ${DEFAULT_CONTEXT_SIZE}`)
-  console.log(`Embedding dimension: ${DEFAULT_EMBEDDING_DIMENSION}`)
-  console.log(`Generation length: ${DEFAULT_GENERATION_LENGTH}`)
-  console.log(`Temperature: ${DEFAULT_TEMPERATURE}`)
-  console.log(`Top P: ${DEFAULT_TOP_P}`)
-  console.groupEnd()
-
-  const datasetPath = selectDatasetFile()
+  const datasetPath: string = selectFile()
   console.group(chalk.green('\nDataset'))
-  const startTime = Date.now()
+  const startTime: number = Date.now()
 
   console.log(`Loading "${datasetPath}"...`)
-  const parquetFile = await asyncBufferFromFile(datasetPath)
+  const parquetFile: AsyncBuffer = await asyncBufferFromFile(datasetPath)
 
   console.log('Parsing records...')
-  const parquetRecords = await parquetReadObjects({ file: parquetFile })
+  const parquetRecords: Record<string, unknown>[] = await parquetReadObjects({ file: parquetFile })
   console.log(`- Loaded ${parquetRecords.length} records`)
 
   console.log('Preparing training texts...')
-  const trainingTexts: string[] = []
-  for (const record of parquetRecords) {
-    const texts = extractTextFromRecord(record)
-    for (const text of texts) {
-      if (typeof text === 'string' && text.length > 0) {
-        trainingTexts.push(text)
-      }
-    }
-  }
+  const trainingTexts: string[] = prepareTrainingTexts(parquetRecords)
   console.log(`- Collected ${trainingTexts.length} text entries`)
   console.groupEnd()
 
   console.log(chalk.green(`\nTraining ${DEFAULT_CONTEXT_SIZE}-gram language model...`))
-  const languageModel = trainLanguageModel(trainingTexts, DEFAULT_CONTEXT_SIZE)
+  const languageModel: LanguageModel = trainLanguageModel(trainingTexts, DEFAULT_CONTEXT_SIZE)
 
   const trainingDurationSeconds = ((Date.now() - startTime) / 1000).toFixed(1)
   console.log(`- Model trained in ${trainingDurationSeconds}s.\n`)
@@ -64,23 +42,21 @@ async function main() {
   console.groupEnd()
 
   while (true) {
-    const userInput = prompt(chalk.green('Prompt>'))
-    if (userInput === null || userInput.toLowerCase() === 'exit') break
-    if (userInput.trim() === '') continue
+    const userInput: null | string = prompt(chalk.green('Prompt>'))
+    if (userInput === null || userInput.toLowerCase() === 'exit') {
+      break
+    } else if (userInput.trim() === '') {
+      continue
+    }
 
-    const inputWords = userInput.trim().split(/\s+/)
+    const inputWords: string[] = userInput.trim().split(/\s+/)
     if (inputWords.length < DEFAULT_CONTEXT_SIZE) {
       console.log(`Please enter at least ${DEFAULT_CONTEXT_SIZE} words.`)
       continue
     }
 
     try {
-      const generatedOutput = generateText(
-        languageModel,
-        userInput,
-        DEFAULT_GENERATION_LENGTH,
-        DEFAULT_TEMPERATURE,
-      )
+      const generatedOutput: string = generateText({ model: languageModel, prompt: userInput })
       console.log(generatedOutput)
     } catch (error) {
       if (error instanceof Error) {

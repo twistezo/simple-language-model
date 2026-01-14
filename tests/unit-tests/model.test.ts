@@ -14,14 +14,14 @@ describe('NgramLanguageModel', () => {
       { contextTokens: [0, 1], nextToken: 2 },
       { contextTokens: [1, 2], nextToken: 3 },
     ]
-    model.trainOnSamples(samples)
-    expect(model.getNextTokenDistribution([0, 1])!.get(2)).toBe(1)
-    expect(model.getNextTokenDistribution([1, 2])!.get(3)).toBe(1)
+    model.train(samples)
+    expect(model.getNextToken([0, 1])!.get(2)).toBe(1)
+    expect(model.getNextToken([1, 2])!.get(3)).toBe(1)
   })
 
   it('should return undefined for unknown context', () => {
     const model = createNgramLanguageModel()
-    expect(model.getNextTokenDistribution([9, 9])).toBeUndefined()
+    expect(model.getNextToken([9, 9])).toBeUndefined()
   })
 
   it('should accumulate counts for repeated samples', () => {
@@ -32,9 +32,9 @@ describe('NgramLanguageModel', () => {
       { contextTokens: [0, 1], nextToken: 2 },
       { contextTokens: [0, 1], nextToken: 3 },
     ]
-    model.trainOnSamples(samples)
+    model.train(samples)
 
-    const distribution = model.getNextTokenDistribution([0, 1])!
+    const distribution = model.getNextToken([0, 1])!
     expect(distribution.get(2)).toBe(3)
     expect(distribution.get(3)).toBe(1)
   })
@@ -46,9 +46,9 @@ describe('NgramLanguageModel', () => {
       { contextTokens: [0, 1], nextToken: 20 },
       { contextTokens: [0, 1], nextToken: 30 },
     ]
-    model.trainOnSamples(samples)
+    model.train(samples)
 
-    const distribution = model.getNextTokenDistribution([0, 1])!
+    const distribution = model.getNextToken([0, 1])!
     expect(distribution.size).toBe(3)
     expect(distribution.get(10)).toBe(1)
     expect(distribution.get(20)).toBe(1)
@@ -57,9 +57,9 @@ describe('NgramLanguageModel', () => {
 
   it('should handle empty samples array', () => {
     const model = createNgramLanguageModel()
-    model.trainOnSamples([])
+    model.train([])
 
-    expect(model.getNextTokenDistribution([0, 1])).toBeUndefined()
+    expect(model.getNextToken([0, 1])).toBeUndefined()
   })
 })
 

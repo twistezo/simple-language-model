@@ -1,29 +1,27 @@
 import chalk from 'chalk'
 
-import type { TokenIdentifier, Vocabulary } from './vocabulary'
+import type { TokenId, Vocabulary } from './vocabulary'
 
 /**
  * Converts input text into an array of token identifiers using the provided vocabulary.
- * The function lowercases the text, splits it into words, and maps each word to its token ID.
- * In training mode, new words are added to the vocabulary; otherwise, unknown words throw an error.
  */
 export const tokenizeText = (
   inputText: string,
   vocabulary: Vocabulary,
   isTrainingMode: boolean,
-): TokenIdentifier[] => {
-  const lowercaseText = inputText.toLowerCase()
-  const words = lowercaseText.split(/\s+/)
+): TokenId[] => {
+  const lowercaseText: string = inputText.toLowerCase()
+  const words: string[] = lowercaseText.split(/\s+/)
 
-  return words.map(word => {
-    const tokenIdentifier = isTrainingMode
-      ? vocabulary.addWord(word)
+  return words.map((word: string): TokenId => {
+    const tokenId: TokenId | undefined = isTrainingMode
+      ? vocabulary.add(word)
       : vocabulary.encodeWordToToken(word)
 
-    if (tokenIdentifier === undefined) {
+    if (tokenId === undefined) {
       throw new Error(chalk.red(`Unknown word: ${word}`))
     }
 
-    return tokenIdentifier
+    return tokenId
   })
 }

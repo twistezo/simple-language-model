@@ -63,7 +63,7 @@ describe('LLM training', () => {
       languageModel.vocabulary.encodeWordToToken('a')!,
       languageModel.vocabulary.encodeWordToToken('b')!,
     ]
-    const distribution = languageModel.ngramModel.getNextTokenDistribution(context)
+    const distribution = languageModel.ngramModel.getNextToken(context)
 
     expect(distribution).toBeDefined()
     expect(distribution!.size).toBe(2)

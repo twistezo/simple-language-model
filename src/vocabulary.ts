@@ -1,38 +1,33 @@
-export type TokenIdentifier = number
+export type TokenId = number
 
 export type Vocabulary = {
-  addWord: (word: string) => TokenIdentifier
-  decodeTokenToWord: (tokenIdentifier: TokenIdentifier) => string
-  encodeWordToToken: (word: string) => TokenIdentifier | undefined
+  add: (word: string) => TokenId
+  decodeTokenToWord: (tokenId: TokenId) => string
+  encodeWordToToken: (word: string) => TokenId | undefined
 }
 
-/**
- * Creates a vocabulary manager that maps words to unique token identifiers and vice versa.
- * Provides methods to add words, encode words to tokens, and decode tokens back to words.
- */
 export const createVocabulary = (): Vocabulary => {
-  const tokenIdentifierToWord = new Map<TokenIdentifier, string>()
-  const wordToTokenIdentifier = new Map<string, TokenIdentifier>()
+  const tokenIdToWord: Map<number, string> = new Map<TokenId, string>()
+  const wordToTokenId: Map<string, number> = new Map<string, TokenId>()
 
-  const addWord = (word: string): TokenIdentifier => {
-    if (!wordToTokenIdentifier.has(word)) {
-      const tokenIdentifier = wordToTokenIdentifier.size
-      wordToTokenIdentifier.set(word, tokenIdentifier)
-      tokenIdentifierToWord.set(tokenIdentifier, word)
+  const add = (word: string): TokenId => {
+    if (!wordToTokenId.has(word)) {
+      const tokenId: number = wordToTokenId.size
+      wordToTokenId.set(word, tokenId)
+      tokenIdToWord.set(tokenId, word)
     }
-
-    return wordToTokenIdentifier.get(word)!
+    return wordToTokenId.get(word)!
   }
 
-  const decodeTokenToWord = (tokenIdentifier: TokenIdentifier): string => {
-    const word = tokenIdentifierToWord.get(tokenIdentifier)
-    if (word === undefined) throw new Error('Unknown token')
-
+  const decodeTokenToWord = (tokenId: TokenId): string => {
+    const word: string | undefined = tokenIdToWord.get(tokenId)
+    if (word === undefined) {
+      throw new Error('Unknown token')
+    }
     return word
   }
 
-  const encodeWordToToken = (word: string): TokenIdentifier | undefined =>
-    wordToTokenIdentifier.get(word)
+  const encodeWordToToken = (word: string): TokenId | undefined => wordToTokenId.get(word)
 
-  return { addWord, decodeTokenToWord, encodeWordToToken }
+  return { add, decodeTokenToWord, encodeWordToToken }
 }

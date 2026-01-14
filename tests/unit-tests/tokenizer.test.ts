@@ -14,8 +14,8 @@ describe('Tokenizer', () => {
 
   it('should tokenize known words when training=false', () => {
     const vocabulary = createVocabulary()
-    vocabulary.addWord('a')
-    vocabulary.addWord('cat')
+    vocabulary.add('a')
+    vocabulary.add('cat')
     const tokens = tokenizeText('A cat', vocabulary, false)
     expect(tokens).toEqual([0, 1])
   })
@@ -68,7 +68,7 @@ describe('Tokenizer', () => {
 
   it('should handle mixed case consistently', () => {
     const vocabulary = createVocabulary()
-    vocabulary.addWord('hello')
+    vocabulary.add('hello')
 
     const tokens1 = tokenizeText('HELLO', vocabulary, false)
     const tokens2 = tokenizeText('Hello', vocabulary, false)
